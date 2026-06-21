@@ -17,7 +17,14 @@
 * {
     margin: 0;
     padding: 0;
+}
+
+p {
     color: var(--text-color);
+}
+
+nav a {
+    font-size: 24px;
 }
 
 main {
@@ -30,18 +37,36 @@ body {
     margin-right: var(--margin-page);
 }
 
-header {
-    display: flex;
-    flex-direction: row;
-    margin-bottom: 20px;
-    padding: 5px;
-}
-
-h1 {
-    font-size: 35pt;
-    color: var(--necro-green-color);
-}
-
 footer p {
     color: var(--dull-gold-color);
+}
+
+.site-header {
+    display: flex;
+
+    justify-content: space-between;
+    align-items: center;
+
+    width: 100%;
+    min-height: 68px;
+
+    box-sizing: border-box;
+}
+
+.site-title,
+.page-title {
+    margin: 0;
+    line-height: 1;
+}
+
+.site-title {
+    font-size: 34pt;
+    color: var(--necro-green-color);
+    text-decoration: none;
+    text-shadow: 0 0 10px;
+}
+
+.page-title {
+    font-size: 24pt;
+    color: var(--text-color);
 }
