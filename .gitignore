@@ -1,2 +1,6 @@
+# Just one txt in repo
 *.txt
+
+# Personal notes
+docs/notes
 
