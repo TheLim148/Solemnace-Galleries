@@ -1,0 +1,28 @@
+{% extends "archive/base.html" %}
+
+{% block title %}
+Регистрация — Solemnace Galleries
+{% endblock %}
+
+{% block content %}
+
+<h1>Регистрация</h1>
+
+<form method="post">
+    {% csrf_token %}
+
+    {{ form.as_p }}
+
+    <button type="submit">
+        Зарегистрироваться
+    </button>
+</form>
+
+<p>
+    Уже есть аккаунт?
+    <a href="{% url 'accounts:login' %}">
+        Войти
+    </a>
+</p>
+
+{% endblock %}

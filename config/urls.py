@@ -24,6 +24,7 @@ from django.urls import include, path
 
 urlpatterns = [
     path("admin/", admin.site.urls),
+    path("accounts/", include("accounts.urls")),
     path("", include("archive.urls")),
 ]
 
@@ -32,3 +33,7 @@ if settings.DEBUG:
         settings.MEDIA_URL,
         document_root=settings.MEDIA_ROOT,
     )
+
+LOGIN_URL = "accounts:login"
+LOGIN_REDIRECT_URL = "archive:home"
+LOGOUT_REDIRECT_URL = "archive:home"
