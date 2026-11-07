@@ -4,3 +4,15 @@
 # Personal notes
 docs/notes
 
+# Python
+.venv/
+__pycache__/
+*.py[cod]
+
+# Environment
+.env
+
+# Django
+media/
+staticfiles/
+*.sqlite3

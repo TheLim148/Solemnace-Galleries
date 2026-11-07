@@ -1,0 +1,72 @@
+:root {
+
+    /* margin */
+    --margin-page: 148px;
+
+    /* background color */
+    --blackstone-color: #0b0c10; 
+    
+    /* first and second accent */    
+    --necro-green-color: #107c41;
+    --dull-gold-color: #d4af37;
+
+    /* text color */
+    --text-color: #d6d6d6;
+}
+
+* {
+    margin: 0;
+    padding: 0;
+}
+
+p {
+    color: var(--text-color);
+}
+
+nav a {
+    font-size: 24px;
+}
+
+main {
+    height: 500px;
+}
+
+body {
+    background-color: var(--blackstone-color);
+    margin-left: var(--margin-page);
+    margin-right: var(--margin-page);
+}
+
+footer p {
+    color: var(--dull-gold-color);
+}
+
+.site-header {
+    display: flex;
+
+    justify-content: space-between;
+    align-items: center;
+
+    width: 100%;
+    min-height: 68px;
+
+    box-sizing: border-box;
+}
+
+.site-title,
+.page-title {
+    margin: 0;
+    line-height: 1;
+}
+
+.site-title {
+    font-size: 34pt;
+    color: var(--necro-green-color);
+    text-decoration: none;
+    text-shadow: 0 0 10px;
+}
+
+.page-title {
+    font-size: 24pt;
+    color: var(--text-color);
+}
