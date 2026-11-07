@@ -1,0 +1,51 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <title>{{ exhibit.title }} — Solemnace Galleries</title>
+</head>
+<body>
+    <a href="{% url 'archive:exhibit_list' %}">
+        Назад к экспонатам
+    </a>
+
+    <h1>{{ exhibit.title }}</h1>
+
+    <p>
+        Категория:
+        {{ exhibit.category.name }}
+    </p>
+
+    <p>
+        Автор:
+        {{ exhibit.owner.username }}
+    </p>
+
+    <article>
+        {{ exhibit.description|linebreaks }}
+    </article>
+
+    <h2>Теги</h2>
+
+    {% for tag in exhibit.tags.all %}
+        <span>{{ tag.name }}</span>
+    {% empty %}
+        <p>Теги отсутствуют.</p>
+    {% endfor %}
+
+    <h2>Источники</h2>
+
+    <ul>
+        {% for source in exhibit.sources.all %}
+            <li>
+                {{ source.title }}
+                {% if source.author %}
+                    — {{ source.author }}
+                {% endif %}
+            </li>
+        {% empty %}
+            <li>Источники не указаны.</li>
+        {% endfor %}
+    </ul>
+</body>
+</html>
