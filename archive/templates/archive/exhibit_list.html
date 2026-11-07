@@ -1,30 +1,27 @@
-<!DOCTYPE html>
-<html lang="ru">
-<head>
-    <meta charset="UTF-8">
-    <title>Экспонаты — Solemnace Galleries</title>
-</head>
-<body>
-    <h1>Экспонаты</h1>
+{% extends "archive/base.html" %}
 
-    <a href="{% url 'archive:home' %}">
-        На главную
-    </a>
+{% block title %}
+Экспонаты — Solemnace Galleries
+{% endblock %}
 
-    {% if exhibits %}
-        <ul>
-            {% for exhibit in exhibits %}
-                <li>
-                    <a href="{% url 'archive:exhibit_detail' exhibit.pk %}">
-                        {{ exhibit.title }}
-                    </a>
+{% block content %}
 
-                    — {{ exhibit.category.name }}
-                </li>
-            {% endfor %}
-        </ul>
-    {% else %}
-        <p>Опубликованных экспонатов пока нет.</p>
-    {% endif %}
-</body>
-</html>
+<h1>Экспонаты</h1>
+
+{% if exhibits %}
+    <ul>
+        {% for exhibit in exhibits %}
+            <li>
+                <a href="{% url 'archive:exhibit_detail' exhibit.pk %}">
+                    {{ exhibit.title }}
+                </a>
+
+                — {{ exhibit.category.name }}
+            </li>
+        {% endfor %}
+    </ul>
+{% else %}
+    <p>Опубликованных экспонатов пока нет.</p>
+{% endif %}
+
+{% endblock %}

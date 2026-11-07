@@ -1,0 +1,42 @@
+{% extends "archive/base.html" %}
+
+{% block title %}
+{{ gallery.name }} — Solemnace Galleries
+{% endblock %}
+
+{% block content %}
+
+<p>
+    Локация:
+    <a href="{% url 'archive:location_detail' gallery.location.pk %}">
+        {{ gallery.location.name }}
+    </a>
+</p>
+
+<h1>{{ gallery.name }}</h1>
+
+{% if gallery.description %}
+    {{ gallery.description|linebreaks }}
+{% endif %}
+
+<p>
+    Автор: {{ gallery.owner.username }}
+</p>
+
+<h2>Экспонаты</h2>
+
+<ul>
+    {% for exhibit in exhibits %}
+        <li>
+            <a href="{% url 'archive:exhibit_detail' exhibit.pk %}">
+                {{ exhibit.title }}
+            </a>
+
+            — {{ exhibit.category.name }}
+        </li>
+    {% empty %}
+        <li>Опубликованных экспонатов пока нет.</li>
+    {% endfor %}
+</ul>
+
+{% endblock %}

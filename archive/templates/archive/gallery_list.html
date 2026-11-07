@@ -1,0 +1,25 @@
+{% extends "archive/base.html" %}
+
+{% block title %}
+Галереи — Solemnace Galleries
+{% endblock %}
+
+{% block content %}
+
+<h1>Галереи</h1>
+
+<ul>
+    {% for gallery in galleries %}
+        <li>
+            <a href="{% url 'archive:gallery_detail' gallery.pk %}">
+                {{ gallery.name }}
+            </a>
+
+            — {{ gallery.location.name }}
+        </li>
+    {% empty %}
+        <li>Галереи отсутствуют.</li>
+    {% endfor %}
+</ul>
+
+{% endblock %}

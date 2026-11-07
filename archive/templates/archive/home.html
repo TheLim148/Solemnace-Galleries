@@ -1,18 +1,15 @@
-<!DOCTYPE html>
-<html lang="ru">
-<head>
-    <meta charset="UTF-8">
-    <title>Solemnace Galleries</title>
-</head>
-<body>
-    <h1>Solemnace Galleries</h1>
+{% extends "archive/base.html" %}
 
-    <p>
-        Цифровой архив галерей и экспонатов.
-    </p>
+{% block title %}
+Solemnace Galleries
+{% endblock %}
 
-    <a href="{% url 'archive:exhibit_list' %}">
-        Перейти к экспонатам
-    </a>
-</body>
-</html>
+{% block content %}
+
+<h1>Solemnace Galleries</h1>
+
+<p>
+    Цифровой архив галерей и экспонатов.
+</p>
+
+{% endblock %}

@@ -1,0 +1,52 @@
+{% extends "archive/base.html" %}
+
+{% block title %}
+{{ location.name }} — Solemnace Galleries
+{% endblock %}
+
+{% block content %}
+
+{% if location.parent %}
+<p>
+    <a href="{% url 'archive:location_detail' location.parent.pk %}">
+        ← {{ location.parent.name }}
+    </a>
+</p>
+{% endif %}
+
+<h1>{{ location.name }}</h1>
+
+{% if location.description %}
+    {{ location.description|linebreaks }}
+{% endif %}
+
+<h2>Дочерние локации</h2>
+
+<ul>
+    {% for child in location.children.all %}
+        <li>
+            <a href="{% url 'archive:location_detail' child.pk %}">
+                {{ child.name }}
+            </a>
+        </li>
+    {% empty %}
+        <li>Дочерних локаций нет.</li>
+    {% endfor %}
+</ul>
+
+
+<h2>Галереи</h2>
+
+<ul>
+    {% for gallery in location.galleries.all %}
+        <li>
+            <a href="{% url 'archive:gallery_detail' gallery.pk %}">
+                {{ gallery.name }}
+            </a>
+        </li>
+    {% empty %}
+        <li>В этой локации пока нет галерей.</li>
+    {% endfor %}
+</ul>
+
+{% endblock %}

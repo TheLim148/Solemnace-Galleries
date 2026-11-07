@@ -1,0 +1,27 @@
+{% extends "archive/base.html" %}
+
+{% block title %}
+Локации — Solemnace Galleries
+{% endblock %}
+
+{% block content %}
+
+<h1>Локации</h1>
+
+<ul>
+    {% for location in locations %}
+        <li>
+            <a href="{% url 'archive:location_detail' location.pk %}">
+                {{ location.name }}
+            </a>
+
+            {% if location.parent %}
+                — внутри {{ location.parent.name }}
+            {% endif %}
+        </li>
+    {% empty %}
+        <li>Локации отсутствуют.</li>
+    {% endfor %}
+</ul>
+
+{% endblock %}

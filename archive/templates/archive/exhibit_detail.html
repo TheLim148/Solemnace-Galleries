@@ -1,151 +1,128 @@
-<!DOCTYPE html>
-<html lang="ru">
-<head>
-    <meta charset="UTF-8">
-    <title>{{ exhibit.title }} — Solemnace Galleries</title>
-</head>
-<body>
+{% extends "archive/base.html" %}
 
-    <nav>
-        <a href="{% url 'archive:home' %}">
-            Solemnace Galleries
-        </a>
+{% block title %}
+{{ exhibit.title }} — Solemnace Galleries
+{% endblock %}
 
-        /
-        
-        <a href="{% url 'archive:exhibit_list' %}">
-            Экспонаты
-        </a>
-    </nav>
+{% block content %}
 
-    <main>
-        <header>
-            <h1>{{ exhibit.title }}</h1>
+<h1>{{ exhibit.title }}</h1>
 
-            <p>
-                Категория:
-                {{ exhibit.category.name }}
-            </p>
+<p>
+    Категория:
+    {{ exhibit.category.name }}
+</p>
 
-            <p>
-                Автор:
-                {{ exhibit.owner.username }}
-            </p>
-        </header>
+<p>
+    Автор:
+    {{ exhibit.owner.username }}
+</p>
 
 
-        <section>
-            <h2>Описание</h2>
+<section>
+    <h2>Описание</h2>
 
-            {{ exhibit.description|linebreaks }}
-        </section>
-
-
-        <section>
-            <h2>Медиаматериалы</h2>
-
-            {% for media in exhibit.media.all %}
-                <figure>
-                    {% if media.media_type == "IMAGE" or media.media_type == "GIF" %}
-                        <img
-                            src="{{ media.file.url }}"
-                            alt="{{ media.alt_text }}"
-                            style="max-width: 500px;"
-                        >
-                    {% endif %}
-
-                    {% if media.caption %}
-                        <figcaption>
-                            {{ media.caption }}
-                        </figcaption>
-                    {% endif %}
-                </figure>
-            {% empty %}
-                <p>Медиаматериалы отсутствуют.</p>
-            {% endfor %}
-        </section>
+    {{ exhibit.description|linebreaks }}
+</section>
 
 
-        <section>
-            <h2>Теги</h2>
+<section>
+    <h2>Медиаматериалы</h2>
 
-            {% for tag in exhibit.tags.all %}
-                <span>
-                    #{{ tag.name }}
-                </span>
-            {% empty %}
-                <p>Теги отсутствуют.</p>
-            {% endfor %}
-        </section>
+    {% for media in exhibit.media.all %}
+        <figure>
+            {% if media.media_type == "IMAGE" or media.media_type == "GIF" %}
+                <img
+                    src="{{ media.file.url }}"
+                    alt="{{ media.alt_text }}"
+                    style="max-width: 500px;"
+                >
+            {% endif %}
 
-
-        <section>
-            <h2>Галереи</h2>
-
-            <ul>
-                {% for gallery in exhibit.galleries.all %}
-                    <li>
-                        {{ gallery.name }}
-                    </li>
-                {% empty %}
-                    <li>
-                        Экспонат пока не входит ни в одну галерею.
-                    </li>
-                {% endfor %}
-            </ul>
-        </section>
+            {% if media.caption %}
+                <figcaption>
+                    {{ media.caption }}
+                </figcaption>
+            {% endif %}
+        </figure>
+    {% empty %}
+        <p>Медиаматериалы отсутствуют.</p>
+    {% endfor %}
+</section>
 
 
-        <section>
-            <h2>Связанные экспонаты</h2>
+<section>
+    <h2>Теги</h2>
 
-            <ul>
-                {% for related in related_exhibits %}
-                    <li>
-                        <a href="{% url 'archive:exhibit_detail' related.pk %}">
-                            {{ related.title }}
-                        </a>
-                    </li>
-                {% empty %}
-                    <li>
-                        Связанные экспонаты отсутствуют.
-                    </li>
-                {% endfor %}
-            </ul>
-        </section>
+    {% for tag in exhibit.tags.all %}
+        <span>#{{ tag.name }}</span>
+    {% empty %}
+        <p>Теги отсутствуют.</p>
+    {% endfor %}
+</section>
 
 
-        <section>
-            <h2>Источники</h2>
+<section>
+    <h2>Галереи</h2>
 
-            <ul>
-                {% for source in exhibit.sources.all %}
-                    <li>
-                        {{ source.title }}
+    <ul>
+        {% for gallery in exhibit.galleries.all %}
+            <li>
+                <a href="{% url 'archive:gallery_detail' gallery.pk %}">
+                    {{ gallery.name }}
+                </a>
+            </li>
+        {% empty %}
+            <li>Экспонат пока не входит ни в одну галерею.</li>
+        {% endfor %}
+    </ul>
+</section>
 
-                        {% if source.author %}
-                            — {{ source.author }}
-                        {% endif %}
 
-                        {% if source.year %}
-                            ({{ source.year }})
-                        {% endif %}
+<section>
+    <h2>Связанные экспонаты</h2>
 
-                        {% if source.url %}
-                            —
-                            <a href="{{ source.url }}">
-                                источник
-                            </a>
-                        {% endif %}
-                    </li>
-                {% empty %}
-                    <li>
-                        Источники не указаны.
-                    </li>
-                {% endfor %}
-            </ul>
-        </section>
-    </main>
+    <ul>
+        {% for related in related_exhibits %}
+            <li>
+                <a href="{% url 'archive:exhibit_detail' related.pk %}">
+                    {{ related.title }}
+                </a>
+            </li>
+        {% empty %}
+            <li>Связанные экспонаты отсутствуют.</li>
+        {% endfor %}
+    </ul>
+</section>
 
-</body>
-</html>
+
+<section>
+    <h2>Источники</h2>
+
+    <ul>
+        {% for source in exhibit.sources.all %}
+            <li>
+                {{ source.title }}
+
+                {% if source.author %}
+                    — {{ source.author }}
+                {% endif %}
+
+                {% if source.year %}
+                    ({{ source.year }})
+                {% endif %}
+
+                {% if source.url %}
+                    —
+                    <a href="{{ source.url }}">
+                        источник
+                    </a>
+                {% endif %}
+            </li>
+        {% empty %}
+            <li>Источники не указаны.</li>
+        {% endfor %}
+    </ul>
+</section>
+
+{% endblock %}
