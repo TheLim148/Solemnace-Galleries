@@ -32,7 +32,11 @@
         </a>
 
             {% if user.is_authenticated %}
-
+        |
+        <a href="{% url 'archive:exhibit_create' %}">
+            Создать экспонат
+        </a>
+        
         |
         <span>
             {{ user.username }}

@@ -8,6 +8,26 @@
 
 <h1>{{ exhibit.title }}</h1>
 
+{% if user.is_authenticated %}
+
+    {% if user == exhibit.owner or user.is_staff or user.role == "ADMIN" %}
+
+        <p>
+            <a href="{% url 'archive:exhibit_edit' exhibit.pk %}">
+                Редактировать
+            </a>
+
+            |
+
+            <a href="{% url 'archive:exhibit_delete' exhibit.pk %}">
+                Удалить
+            </a>
+        </p>
+
+    {% endif %}
+
+{% endif %}
+
 <p>
     Категория:
     {{ exhibit.category.name }}
