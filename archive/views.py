@@ -8,7 +8,7 @@ from django.core.exceptions import PermissionDenied
 
 from django.http import Http404
 
-from .forms import ExhibitForm, MediaForm
+from .forms import ExhibitForm, MediaForm, GalleryForm
 from .models import (
     Exhibit,
     ExhibitRelation,
@@ -249,6 +249,17 @@ def can_manage_exhibit(user, exhibit):
         or user.role == "ADMIN"
     )
 
+def can_manage_gallery(user, gallery):
+    if not user.is_authenticated:
+        return False
+
+    return (
+        gallery.owner_id == user.id
+        or user.is_staff
+        or user.is_superuser
+        or user.role == "ADMIN"
+    )
+
 @login_required
 def exhibit_edit(request, pk):
     exhibit = get_object_or_404(
@@ -460,3 +471,114 @@ def media_delete(request, pk):
         "archive:exhibit_detail",
         pk=exhibit.pk,
     )
+
+@login_required
+def my_galleries(request):
+    galleries = (
+        Gallery.objects
+        .filter(owner=request.user)
+        .select_related("location")
+        .order_by("-updated_at")
+    )
+
+    return render(
+        request,
+        "archive/my_galleries.html",
+        {"galleries": galleries},
+    )
+
+@login_required
+def gallery_create(request):
+    if request.method == "POST":
+        form = GalleryForm(
+            request.POST,
+            user=request.user,
+        )
+
+        if form.is_valid():
+            gallery = form.save(commit=False)
+            gallery.owner = request.user
+            gallery.save()
+
+            return redirect(
+                "archive:gallery_detail",
+                pk=gallery.pk,
+            )
+
+    else:
+        form = GalleryForm(user=request.user)
+
+    return render(
+        request,
+        "archive/gallery_form.html",
+        {
+            "form": form,
+            "editing": False,
+        },
+    )
+
+@login_required
+def gallery_edit(request, pk):
+    gallery = get_object_or_404(
+        Gallery.objects.select_related("location", "owner"),
+        pk=pk,
+    )
+
+    if not can_manage_gallery(request.user, gallery):
+        raise PermissionDenied
+
+    if request.method == "POST":
+        form = GalleryForm(
+            request.POST,
+            instance=gallery,
+            user=request.user,
+        )
+
+        if form.is_valid():
+            gallery = form.save()
+
+            return redirect(
+                "archive:gallery_detail",
+                pk=gallery.pk,
+            )
+
+    else:
+        form = GalleryForm(
+            instance=gallery,
+            user=request.user,
+        )
+
+    return render(
+        request,
+        "archive/gallery_form.html",
+        {
+            "form": form,
+            "gallery": gallery,
+            "editing": True,
+        },
+    )
+
+@login_required
+def gallery_delete(request, pk):
+    gallery = get_object_or_404(
+        Gallery,
+        pk=pk,
+    )
+
+    if not can_manage_gallery(request.user, gallery):
+        raise PermissionDenied
+
+    if request.method == "POST":
+        gallery.delete()
+
+        return redirect(
+            "archive:my_galleries",
+        )
+
+    return render(
+        request,
+        "archive/gallery_confirm_delete.html",
+        {"gallery": gallery},
+    )
+
+

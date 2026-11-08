@@ -1,0 +1,34 @@
+{% extends "archive/base.html" %}
+
+{% block title %}
+Удаление {{ gallery.name }}
+{% endblock %}
+
+{% block content %}
+
+<h1>Удалить галерею?</h1>
+
+<p>
+    Вы действительно хотите удалить
+    «{{ gallery.name }}»?
+</p>
+
+<p>
+    Экспонаты, находящиеся в галерее, удалены не будут.
+</p>
+
+<form method="post">
+    {% csrf_token %}
+
+    <button type="submit">
+        Удалить
+    </button>
+</form>
+
+<p>
+    <a href="{% url 'archive:gallery_detail' gallery.pk %}">
+        Отмена
+    </a>
+</p>
+
+{% endblock %}

@@ -31,7 +31,8 @@
             Экспонаты
         </a>
 
-            {% if user.is_authenticated %}
+        {% if user.is_authenticated %}
+
         |
         <a href="{% url 'archive:exhibit_create' %}">
             Создать экспонат
@@ -40,6 +41,11 @@
         |
         <a href="{% url 'archive:my_exhibits' %}">
             Мои экспонаты
+        </a>
+
+        |
+        <a href="{% url 'archive:my_galleries' %}">
+            Мои галереи
         </a>
 
         |

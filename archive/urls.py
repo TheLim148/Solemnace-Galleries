@@ -21,6 +21,26 @@ urlpatterns = [
         views.gallery_detail,
         name="gallery_detail",
     ),
+    path(
+        "my/galleries/",
+        views.my_galleries,
+        name="my_galleries",
+    ),
+    path(
+        "galleries/create/",
+        views.gallery_create,
+        name="gallery_create",
+    ),
+    path(
+        "galleries/<int:pk>/edit/",
+        views.gallery_edit,
+        name="gallery_edit",
+    ),
+    path(
+        "galleries/<int:pk>/delete/",
+        views.gallery_delete,
+        name="gallery_delete",
+    ),
 
     path("exhibits/", views.exhibit_list, name="exhibit_list"),
     path(

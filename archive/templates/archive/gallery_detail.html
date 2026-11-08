@@ -15,6 +15,26 @@
 
 <h1>{{ gallery.name }}</h1>
 
+{% if user.is_authenticated %}
+
+    {% if user == gallery.owner or user.is_staff or user.role == "ADMIN" %}
+
+        <p>
+            <a href="{% url 'archive:gallery_edit' gallery.pk %}">
+                Редактировать
+            </a>
+
+            |
+
+            <a href="{% url 'archive:gallery_delete' gallery.pk %}">
+                Удалить
+            </a>
+        </p>
+
+    {% endif %}
+
+{% endif %}
+
 {% if gallery.description %}
     {{ gallery.description|linebreaks }}
 {% endif %}

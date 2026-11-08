@@ -1,6 +1,16 @@
 from django import forms
 
-from .models import Category, Exhibit, Gallery, Media, Source, Tag
+from django.db.models import Q
+
+from .models import (
+    Category,
+    Exhibit,
+    Gallery,
+    Location,
+    Media,
+    Source,
+    Tag,
+)
 
 
 class ExhibitForm(forms.ModelForm):
@@ -59,3 +69,37 @@ class MediaForm(forms.ModelForm):
             "alt_text": "Альтернативный текст",
             "position": "Позиция",
         }
+
+class GalleryForm(forms.ModelForm):
+    class Meta:
+        model = Gallery
+        fields = (
+            "name",
+            "description",
+            "location",
+        )
+
+        labels = {
+            "name": "Название",
+            "description": "Описание",
+            "location": "Локация",
+        }
+
+    def __init__(self, *args, user=None, **kwargs):
+        super().__init__(*args, **kwargs)
+
+        if user is None:
+            self.fields["location"].queryset = Location.objects.none()
+            return
+
+        if user.is_staff or user.is_superuser or user.role == "ADMIN":
+            self.fields["location"].queryset = Location.objects.order_by("name")
+        else:
+            self.fields["location"].queryset = (
+                Location.objects
+                .filter(
+                    Q(owner=user)
+                    | Q(is_system=True)
+                )
+                .order_by("name")
+            )
