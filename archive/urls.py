@@ -39,6 +39,16 @@ urlpatterns = [
         name="exhibit_delete",
     ),
     path(
+        "my/exhibits/",
+        views.my_exhibits,
+        name="my_exhibits",
+    ),
+    path(
+        "exhibits/<int:pk>/submit/",
+        views.exhibit_submit_for_review,
+        name="exhibit_submit_for_review",
+    ),
+    path(
         "exhibits/<int:pk>/",
         views.exhibit_detail,
         name="exhibit_detail",

@@ -13,6 +13,7 @@
     {% if user == exhibit.owner or user.is_staff or user.role == "ADMIN" %}
 
         <p>
+            Статус: {{ exhibit.get_status_display }}
             <a href="{% url 'archive:exhibit_edit' exhibit.pk %}">
                 Редактировать
             </a>
@@ -22,6 +23,26 @@
             <a href="{% url 'archive:exhibit_delete' exhibit.pk %}">
                 Удалить
             </a>
+
+            {% if user == exhibit.owner %}
+
+                {% if exhibit.status == "DRAFT" or exhibit.status == "REJECTED" %}
+
+                    <form
+                        method="post"
+                        action="{% url 'archive:exhibit_submit_for_review' exhibit.pk %}"
+                        style="display: inline;"
+                    >
+                        {% csrf_token %}
+
+                    <button type="submit">
+                        Отправить на модерацию
+                    </button>
+                    </form>
+
+                {% endif %}
+
+            {% endif %}
         </p>
 
     {% endif %}

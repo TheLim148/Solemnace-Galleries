@@ -1,0 +1,42 @@
+{% extends "archive/base.html" %}
+
+{% block title %}
+Мои экспонаты — Solemnace Galleries
+{% endblock %}
+
+{% block content %}
+
+<h1>Мои экспонаты</h1>
+
+<p>
+    <a href="{% url 'archive:exhibit_create' %}">
+        Создать новый экспонат
+    </a>
+</p>
+
+{% if exhibits %}
+    <ul>
+        {% for exhibit in exhibits %}
+            <li>
+                <a href="{% url 'archive:exhibit_detail' exhibit.pk %}">
+                    {{ exhibit.title }}
+                </a>
+
+                — {{ exhibit.get_status_display }}
+
+                {% if exhibit.category %}
+                    — {{ exhibit.category.name }}
+                {% endif %}
+
+                |
+                <a href="{% url 'archive:exhibit_edit' exhibit.pk %}">
+                    Редактировать
+                </a>
+            </li>
+        {% endfor %}
+    </ul>
+{% else %}
+    <p>Вы ещё не создали ни одного экспоната.</p>
+{% endif %}
+
+{% endblock %}

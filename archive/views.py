@@ -6,6 +6,8 @@ from django.db import transaction
 
 from django.core.exceptions import PermissionDenied
 
+from django.http import Http404
+
 from .forms import ExhibitForm
 from .models import (
     Exhibit,
@@ -37,7 +39,7 @@ def exhibit_list(request):
 
 
 def exhibit_detail(request, pk):
-    exhibits = (
+    exhibit = get_object_or_404(
         Exhibit.objects
         .select_related("category", "owner")
         .prefetch_related(
@@ -45,30 +47,30 @@ def exhibit_detail(request, pk):
             "sources",
             "media",
             "galleries",
-        )
-    )
-
-    if request.user.is_authenticated:
-        is_admin = (
-            request.user.is_staff
-            or request.user.role == "ADMIN"
-        )
-
-        if not is_admin:
-            exhibits = exhibits.filter(
-                Q(status=Exhibit.Status.PUBLISHED)
-                | Q(owner=request.user)
-            )
-
-    else:
-        exhibits = exhibits.filter(
-            status=Exhibit.Status.PUBLISHED,
-        )
-
-    exhibit = get_object_or_404(
-        exhibits,
+        ),
         pk=pk,
     )
+
+    is_admin = (
+        request.user.is_authenticated
+        and (
+            request.user.is_staff
+            or request.user.is_superuser
+            or request.user.role == "ADMIN"
+        )
+    )
+
+    is_owner = (
+        request.user.is_authenticated
+        and exhibit.owner_id == request.user.id
+    )
+
+    if (
+        exhibit.status != Exhibit.Status.PUBLISHED
+        and not is_owner
+        and not is_admin
+    ):
+        raise Http404
 
     relations = (
         ExhibitRelation.objects
@@ -91,22 +93,16 @@ def exhibit_detail(request, pk):
         pk__in=related_ids
     )
 
-    if request.user.is_authenticated:
-        is_admin = (
-            request.user.is_staff
-            or request.user.role == "ADMIN"
-        )
-
-        if not is_admin:
+    if not is_admin:
+        if request.user.is_authenticated:
             related_exhibits = related_exhibits.filter(
                 Q(status=Exhibit.Status.PUBLISHED)
                 | Q(owner=request.user)
             )
-
-    else:
-        related_exhibits = related_exhibits.filter(
-            status=Exhibit.Status.PUBLISHED,
-        )
+        else:
+            related_exhibits = related_exhibits.filter(
+                status=Exhibit.Status.PUBLISHED,
+            )
 
     return render(
         request,
@@ -360,4 +356,45 @@ def exhibit_delete(request, pk):
         request,
         "archive/exhibit_confirm_delete.html",
         {"exhibit": exhibit},
+    )
+
+@login_required
+def my_exhibits(request):
+    exhibits = (
+        Exhibit.objects
+        .filter(owner=request.user)
+        .select_related("category")
+        .order_by("-updated_at")
+    )
+
+    return render(
+        request,
+        "archive/my_exhibits.html",
+        {"exhibits": exhibits},
+    )
+
+
+@login_required
+def exhibit_submit_for_review(request, pk):
+    exhibit = get_object_or_404(
+        Exhibit,
+        pk=pk,
+        owner=request.user,
+    )
+
+    if request.method != "POST":
+        raise PermissionDenied
+
+    if exhibit.status not in (
+        Exhibit.Status.DRAFT,
+        Exhibit.Status.REJECTED,
+    ):
+        raise PermissionDenied
+
+    exhibit.status = Exhibit.Status.PENDING
+    exhibit.save(update_fields=["status", "updated_at"])
+
+    return redirect(
+        "archive:exhibit_detail",
+        pk=exhibit.pk,
     )
