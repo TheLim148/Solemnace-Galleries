@@ -1,0 +1,42 @@
+{% extends "archive/base.html" %}
+
+{% block title %}
+Мои локации — Solemnace Galleries
+{% endblock %}
+
+{% block content %}
+
+<h1>Мои локации</h1>
+
+<p>
+    <a href="{% url 'archive:location_create' %}">
+        Создать локацию
+    </a>
+</p>
+
+{% for location in locations %}
+
+    <p>
+        <a href="{% url 'archive:location_detail' location.pk %}">
+            {{ location.name }}
+        </a>
+
+        {% if location.parent %}
+            — {{ location.parent.name }}
+        {% endif %}
+
+        |
+        <a href="{% url 'archive:location_edit' location.pk %}">
+            Редактировать
+        </a>
+    </p>
+
+{% empty %}
+
+    <p>
+        Вы ещё не создали ни одной локации.
+    </p>
+
+{% endfor %}
+
+{% endblock %}

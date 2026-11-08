@@ -1,0 +1,33 @@
+{% extends "archive/base.html" %}
+
+{% block title %}
+{% if editing %}
+    Редактирование {{ location.name }}
+{% else %}
+    Создание локации
+{% endif %}
+{% endblock %}
+
+{% block content %}
+
+{% if editing %}
+    <h1>Редактировать локацию</h1>
+{% else %}
+    <h1>Создать локацию</h1>
+{% endif %}
+
+<form method="post">
+    {% csrf_token %}
+
+    {{ form.as_p }}
+
+    <button type="submit">
+        {% if editing %}
+            Сохранить изменения
+        {% else %}
+            Создать локацию
+        {% endif %}
+    </button>
+</form>
+
+{% endblock %}

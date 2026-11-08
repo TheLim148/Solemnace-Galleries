@@ -8,7 +8,14 @@ from django.core.exceptions import PermissionDenied
 
 from django.http import Http404
 
-from .forms import ExhibitForm, MediaForm, GalleryForm
+
+from .forms import (
+    ExhibitForm,
+    GalleryForm,
+    LocationForm,
+    MediaForm,
+)
+
 from .models import (
     Exhibit,
     ExhibitRelation,
@@ -255,6 +262,20 @@ def can_manage_gallery(user, gallery):
 
     return (
         gallery.owner_id == user.id
+        or user.is_staff
+        or user.is_superuser
+        or user.role == "ADMIN"
+    )
+
+def can_manage_location(user, location):
+    if not user.is_authenticated:
+        return False
+
+    if location.is_system:
+        return False
+
+    return (
+        location.owner_id == user.id
         or user.is_staff
         or user.is_superuser
         or user.role == "ADMIN"
@@ -579,6 +600,140 @@ def gallery_delete(request, pk):
         request,
         "archive/gallery_confirm_delete.html",
         {"gallery": gallery},
+    )
+
+@login_required
+def my_locations(request):
+    locations = (
+        Location.objects
+        .filter(owner=request.user)
+        .select_related("parent")
+        .order_by("name")
+    )
+
+    return render(
+        request,
+        "archive/my_locations.html",
+        {"locations": locations},
+    )
+
+@login_required
+def location_create(request):
+    if request.method == "POST":
+        form = LocationForm(
+            request.POST,
+            user=request.user,
+        )
+
+        if form.is_valid():
+            location = form.save(commit=False)
+
+            location.owner = request.user
+            location.is_system = False
+
+            location.save()
+
+            return redirect(
+                "archive:location_detail",
+                pk=location.pk,
+            )
+
+    else:
+        form = LocationForm(
+            user=request.user,
+        )
+
+    return render(
+        request,
+        "archive/location_form.html",
+        {
+            "form": form,
+            "editing": False,
+        },
+    )
+
+@login_required
+def location_edit(request, pk):
+    location = get_object_or_404(
+        Location.objects.select_related(
+            "owner",
+            "parent",
+        ),
+        pk=pk,
+    )
+
+    if not can_manage_location(request.user, location):
+        raise PermissionDenied
+
+    if request.method == "POST":
+        form = LocationForm(
+            request.POST,
+            instance=location,
+            user=request.user,
+        )
+
+        if form.is_valid():
+            location = form.save()
+
+            return redirect(
+                "archive:location_detail",
+                pk=location.pk,
+            )
+
+    else:
+        form = LocationForm(
+            instance=location,
+            user=request.user,
+        )
+
+    return render(
+        request,
+        "archive/location_form.html",
+        {
+            "form": form,
+            "location": location,
+            "editing": True,
+        },
+    )
+
+@login_required
+def location_delete(request, pk):
+    location = get_object_or_404(
+        Location,
+        pk=pk,
+    )
+
+    if not can_manage_location(request.user, location):
+        raise PermissionDenied
+
+    error = None
+
+    if request.method == "POST":
+        if location.children.exists():
+            error = (
+                "Нельзя удалить локацию, пока она содержит "
+                "дочерние локации."
+            )
+
+        elif location.galleries.exists():
+            error = (
+                "Нельзя удалить локацию, пока она содержит галереи."
+            )
+
+        else:
+            location.delete()
+
+            return redirect(
+                "archive:my_locations",
+            )
+
+    return render(
+        request,
+        "archive/location_confirm_delete.html",
+        {
+            "location": location,
+            "error": error,
+        },
     )
 
 

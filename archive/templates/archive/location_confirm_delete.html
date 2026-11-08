@@ -1,0 +1,36 @@
+{% extends "archive/base.html" %}
+
+{% block title %}
+Удаление {{ location.name }}
+{% endblock %}
+
+{% block content %}
+
+<h1>Удалить локацию?</h1>
+
+<p>
+    Вы действительно хотите удалить
+    «{{ location.name }}»?
+</p>
+
+{% if error %}
+    <p>
+        <strong>{{ error }}</strong>
+    </p>
+{% endif %}
+
+<form method="post">
+    {% csrf_token %}
+
+    <button type="submit">
+        Удалить
+    </button>
+</form>
+
+<p>
+    <a href="{% url 'archive:location_detail' location.pk %}">
+        Отмена
+    </a>
+</p>
+
+{% endblock %}

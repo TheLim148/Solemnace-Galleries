@@ -16,6 +16,30 @@
 
 <h1>{{ location.name }}</h1>
 
+{% if user.is_authenticated %}
+
+    {% if not location.is_system %}
+
+        {% if user == location.owner or user.is_staff or user.role == "ADMIN" %}
+
+            <p>
+                <a href="{% url 'archive:location_edit' location.pk %}">
+                    Редактировать
+                </a>
+
+                |
+
+                <a href="{% url 'archive:location_delete' location.pk %}">
+                    Удалить
+                </a>
+            </p>
+
+        {% endif %}
+
+    {% endif %}
+
+{% endif %}
+
 {% if location.description %}
     {{ location.description|linebreaks }}
 {% endif %}
