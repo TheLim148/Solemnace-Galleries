@@ -8,7 +8,7 @@ from django.core.exceptions import PermissionDenied
 
 from django.http import Http404
 
-from .forms import ExhibitForm
+from .forms import ExhibitForm, MediaForm
 from .models import (
     Exhibit,
     ExhibitRelation,
@@ -17,6 +17,7 @@ from .models import (
     Gallery,
     GalleryExhibit,
     Location,
+    Media,
 )
 
 def home(request):
@@ -393,6 +394,67 @@ def exhibit_submit_for_review(request, pk):
 
     exhibit.status = Exhibit.Status.PENDING
     exhibit.save(update_fields=["status", "updated_at"])
+
+    return redirect(
+        "archive:exhibit_detail",
+        pk=exhibit.pk,
+    )
+
+@login_required
+def media_create(request, exhibit_pk):
+    exhibit = get_object_or_404(
+        Exhibit,
+        pk=exhibit_pk,
+    )
+
+    if not can_manage_exhibit(request.user, exhibit):
+        raise PermissionDenied
+
+    if request.method == "POST":
+        form = MediaForm(
+            request.POST,
+            request.FILES,
+        )
+
+        if form.is_valid():
+            media = form.save(commit=False)
+            media.exhibit = exhibit
+            media.save()
+
+            return redirect(
+                "archive:exhibit_detail",
+                pk=exhibit.pk,
+            )
+
+    else:
+        form = MediaForm()
+
+    return render(
+        request,
+        "archive/media_form.html",
+        {
+            "form": form,
+            "exhibit": exhibit,
+        },
+    )
+
+@login_required
+def media_delete(request, pk):
+    media = get_object_or_404(
+        Media.objects.select_related("exhibit"),
+        pk=pk,
+    )
+
+    exhibit = media.exhibit
+
+    if not can_manage_exhibit(request.user, exhibit):
+        raise PermissionDenied
+
+    if request.method != "POST":
+        raise PermissionDenied
+
+    media.file.delete(save=False)
+    media.delete()
 
     return redirect(
         "archive:exhibit_detail",

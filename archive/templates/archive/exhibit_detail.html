@@ -14,6 +14,9 @@
 
         <p>
             Статус: {{ exhibit.get_status_display }}
+
+            |
+
             <a href="{% url 'archive:exhibit_edit' exhibit.pk %}">
                 Редактировать
             </a>
@@ -43,6 +46,13 @@
                 {% endif %}
 
             {% endif %}
+
+            |
+
+            <a href="{% url 'archive:media_create' exhibit.pk %}">
+                Добавить медиа
+            </a>
+
         </p>
 
     {% endif %}
@@ -86,6 +96,22 @@
                 </figcaption>
             {% endif %}
         </figure>
+
+        {% if user.is_authenticated %}
+            {% if user == exhibit.owner or user.is_staff or user.role == "ADMIN" %}
+                <form
+                    method="post"
+                    action="{% url 'archive:media_delete' media.pk %}"
+                >
+                    {% csrf_token %}
+
+                    <button type="submit">
+                        Удалить медиа
+                    </button>
+                </form>
+            {% endif %}
+        {% endif %}
+
     {% empty %}
         <p>Медиаматериалы отсутствуют.</p>
     {% endfor %}

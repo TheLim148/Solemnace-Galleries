@@ -29,6 +29,16 @@ urlpatterns = [
         name="exhibit_create",
     ),
     path(
+        "exhibits/<int:exhibit_pk>/media/create/",
+        views.media_create,
+        name="media_create",
+    ),
+    path(
+        "media/<int:pk>/delete/",
+        views.media_delete,
+        name="media_delete",
+    ),
+    path(
         "exhibits/<int:pk>/edit/",
         views.exhibit_edit,
         name="exhibit_edit",
