@@ -1,33 +1,35 @@
 {% extends "archive/base.html" %}
 
-{% block title %}
-{% if editing %}
-    Редактирование {{ location.name }}
-{% else %}
-    Создание локации
-{% endif %}
-{% endblock %}
+{% block title %}{% if editing %}Редактирование {{ location.name }}{% else %}Создание локации{% endif %}{% endblock %}
+{% block body_class %}service-page form-page{% endblock %}
 
 {% block content %}
+<div class="service-heading">
+    <div>
+        <p class="service-kicker">Локации / управление</p>
+        <h1>{% if editing %}Редактировать локацию{% else %}Создать локацию{% endif %}</h1>
+        <p class="service-heading__lead">
+            Локации образуют иерархию архива. Выберите родительский узел, внутри которого будет размещена новая область.
+        </p>
+    </div>
+    <a class="button button--ghost" href="{% if editing %}{% url 'archive:location_detail' location.pk %}{% else %}{% url 'archive:my_locations' %}{% endif %}">Назад</a>
+</div>
 
-{% if editing %}
-    <h1>Редактировать локацию</h1>
-{% else %}
-    <h1>Создать локацию</h1>
-{% endif %}
+<section class="form-panel service-section">
+    <header class="form-panel__header">
+        <span class="form-panel__index">LOCATION / {% if editing %}EDIT{% else %}NEW{% endif %}</span>
+        <h2>Параметры узла</h2>
+    </header>
 
-<form method="post">
-    {% csrf_token %}
+    <form method="post" class="archive-form">
+        {% csrf_token %}
+        {{ form.as_p }}
 
-    {{ form.as_p }}
-
-    <button type="submit">
-        {% if editing %}
-            Сохранить изменения
-        {% else %}
-            Создать локацию
-        {% endif %}
-    </button>
-</form>
-
+        <div class="form-actions">
+            <button class="button button--primary" type="submit">
+                {% if editing %}Сохранить изменения{% else %}Создать локацию{% endif %}
+            </button>
+        </div>
+    </form>
+</section>
 {% endblock %}

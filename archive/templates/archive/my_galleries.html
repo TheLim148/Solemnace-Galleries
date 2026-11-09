@@ -1,34 +1,50 @@
 {% extends "archive/base.html" %}
 
-{% block title %}
-Мои галереи — Solemnace Galleries
-{% endblock %}
+{% block title %}Мои галереи — Solemnace Galleries{% endblock %}
+{% block body_class %}service-page workspace-page{% endblock %}
 
 {% block content %}
+<div class="service-heading">
+    <div>
+        <p class="service-kicker">Личный архив</p>
+        <h1>Мои галереи</h1>
+        <p class="service-heading__lead">Тематические коллекции, которыми вы управляете.</p>
+    </div>
+    <a class="button button--primary" href="{% url 'archive:gallery_create' %}">Создать галерею</a>
+</div>
 
-<h1>Мои галереи</h1>
+<section class="workspace-panel service-section">
+    <header class="workspace-panel__header">
+        <div>
+            <span class="form-panel__index">GALLERIES / PERSONAL</span>
+            <h2>Коллекции куратора</h2>
+        </div>
+        <span class="workspace-count">{{ galleries|length }}</span>
+    </header>
 
-<p>
-    <a href="{% url 'archive:gallery_create' %}">
-        Создать галерею
-    </a>
-</p>
-
-{% for gallery in galleries %}
-    <p>
-        <a href="{% url 'archive:gallery_detail' gallery.pk %}">
-            {{ gallery.name }}
-        </a>
-
-        — {{ gallery.location.name }}
-
-        |
-        <a href="{% url 'archive:gallery_edit' gallery.pk %}">
-            Редактировать
-        </a>
-    </p>
-{% empty %}
-    <p>Вы ещё не создали ни одной галереи.</p>
-{% endfor %}
-
+    <div class="workspace-list">
+        {% for gallery in galleries %}
+            <article class="workspace-row">
+                <div class="workspace-row__glyph" aria-hidden="true">G</div>
+                <div class="workspace-row__main">
+                    <a class="workspace-row__title" href="{% url 'archive:gallery_detail' gallery.pk %}">{{ gallery.name }}</a>
+                    <div class="workspace-row__meta">
+                        <span>Локация: {{ gallery.location.name }}</span>
+                    </div>
+                </div>
+                <div class="workspace-row__actions">
+                    <a class="button button--ghost button--small" href="{% url 'archive:gallery_detail' gallery.pk %}">Открыть</a>
+                    <a class="button button--small" href="{% url 'archive:gallery_edit' gallery.pk %}">Редактировать</a>
+                </div>
+            </article>
+        {% empty %}
+            <div class="service-empty">
+                <span class="service-empty__mark" aria-hidden="true"></span>
+                <h3>Галерей пока нет</h3>
+                <p>Создайте коллекцию и привяжите её к одной из доступных локаций.</p>
+                <a class="button button--primary" href="{% url 'archive:gallery_create' %}">Создать галерею</a>
+            </div>
+        {% endfor %}
+    </div>
+</section>
 {% endblock %}

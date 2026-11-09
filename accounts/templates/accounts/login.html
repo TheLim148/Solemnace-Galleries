@@ -1,34 +1,48 @@
 {% extends "archive/base.html" %}
 
-{% block title %}
-Вход — Solemnace Galleries
-{% endblock %}
+{% block title %}Вход — Solemnace Galleries{% endblock %}
+{% block body_class %}service-page auth-page{% endblock %}
 
 {% block content %}
+<section class="auth-layout service-section">
+    <div class="auth-intro">
+        <p class="service-kicker">Доступ к архиву</p>
+        <h1>Вход</h1>
+        <p class="auth-intro__lead">
+            Авторизуйтесь, чтобы управлять собственными экспонатами,
+            галереями и локациями, сохранять материалы и отправлять их на модерацию.
+        </p>
 
-<h1>Вход</h1>
+        <div class="auth-sigil" aria-hidden="true">
+            <span></span>
+        </div>
+    </div>
 
-{% if form.errors %}
-    <p>
-        Неверное имя пользователя или пароль.
-    </p>
-{% endif %}
+    <div class="form-panel auth-panel">
+        <header class="form-panel__header">
+            <span class="form-panel__index">AUTH / 01</span>
+            <h2>Идентификация куратора</h2>
+        </header>
 
-<form method="post">
-    {% csrf_token %}
+        {% if form.errors %}
+            <div class="form-alert form-alert--danger">
+                Неверное имя пользователя или пароль. Проверьте введённые данные.
+            </div>
+        {% endif %}
 
-    {{ form.as_p }}
+        <form method="post" class="archive-form">
+            {% csrf_token %}
+            {{ form.as_p }}
 
-    <button type="submit">
-        Войти
-    </button>
-</form>
+            <div class="form-actions">
+                <button class="button button--primary" type="submit">Войти в архив</button>
+            </div>
+        </form>
 
-<p>
-    Нет аккаунта?
-    <a href="{% url 'accounts:register' %}">
-        Зарегистрироваться
-    </a>
-</p>
-
+        <p class="form-panel__footnote">
+            Нет аккаунта?
+            <a href="{% url 'accounts:register' %}">Создать профиль куратора</a>
+        </p>
+    </div>
+</section>
 {% endblock %}

@@ -1,37 +1,48 @@
 {% extends "archive/base.html" %}
 
-{% block title %}
-{% if editing %}
-    Редактирование {{ exhibit.title }}
-{% else %}
-    Создание экспоната
-{% endif %}
-{% endblock %}
+{% block title %}{% if editing %}Редактирование {{ exhibit.title }}{% else %}Создание экспоната{% endif %}{% endblock %}
+{% block body_class %}service-page form-page{% endblock %}
 
 {% block content %}
+<div class="service-heading">
+    <div>
+        <p class="service-kicker">Экспонаты / управление</p>
+        <h1>{% if editing %}Редактировать экспонат{% else %}Создать экспонат{% endif %}</h1>
+        <p class="service-heading__lead">
+            {% if editing %}
+                Изменения сохранятся в текущей записи экспоната.
+            {% else %}
+                Новый экспонат будет создан как черновик. После заполнения его можно отправить на модерацию.
+            {% endif %}
+        </p>
+    </div>
+    {% if editing %}
+        <a class="button button--ghost" href="{% url 'archive:exhibit_detail' exhibit.pk %}">Вернуться к экспонату</a>
+    {% else %}
+        <a class="button button--ghost" href="{% url 'archive:my_exhibits' %}">Мои экспонаты</a>
+    {% endif %}
+</div>
 
-{% if editing %}
-    <h1>Редактировать экспонат</h1>
-{% else %}
-    <h1>Создать экспонат</h1>
+<section class="form-panel service-section">
+    <header class="form-panel__header">
+        <span class="form-panel__index">EXHIBIT / {% if editing %}EDIT{% else %}NEW{% endif %}</span>
+        <h2>Карточка экспоната</h2>
+    </header>
 
-    <p>
-        Новый экспонат будет сохранён как черновик.
-    </p>
-{% endif %}
+    <form method="post" class="archive-form">
+        {% csrf_token %}
+        {{ form.as_p }}
 
-<form method="post">
-    {% csrf_token %}
-
-    {{ form.as_p }}
-
-    <button type="submit">
-        {% if editing %}
-            Сохранить изменения
-        {% else %}
-            Создать экспонат
-        {% endif %}
-    </button>
-</form>
-
+        <div class="form-actions">
+            <button class="button button--primary" type="submit">
+                {% if editing %}Сохранить изменения{% else %}Создать экспонат{% endif %}
+            </button>
+            {% if editing %}
+                <a class="button button--ghost" href="{% url 'archive:exhibit_detail' exhibit.pk %}">Отмена</a>
+            {% else %}
+                <a class="button button--ghost" href="{% url 'archive:my_exhibits' %}">Отмена</a>
+            {% endif %}
+        </div>
+    </form>
+</section>
 {% endblock %}

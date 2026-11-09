@@ -1,36 +1,28 @@
 {% extends "archive/base.html" %}
 
-{% block title %}
-Удаление {{ location.name }}
-{% endblock %}
+{% block title %}Удаление {{ location.name }}{% endblock %}
+{% block body_class %}service-page danger-page{% endblock %}
 
 {% block content %}
-
-<h1>Удалить локацию?</h1>
-
-<p>
-    Вы действительно хотите удалить
-    «{{ location.name }}»?
-</p>
-
-{% if error %}
-    <p>
-        <strong>{{ error }}</strong>
+<section class="danger-panel service-section">
+    <div class="danger-panel__mark" aria-hidden="true">!</div>
+    <p class="service-kicker">Удаление узла</p>
+    <h1>Удалить локацию?</h1>
+    <p class="danger-panel__lead">
+        Вы собираетесь удалить «{{ location.name }}». Пустая пользовательская локация может быть удалена,
+        но узел с дочерними локациями или галереями должен быть сначала освобождён.
     </p>
-{% endif %}
 
-<form method="post">
-    {% csrf_token %}
+    {% if error %}
+        <div class="form-alert form-alert--danger">{{ error }}</div>
+    {% endif %}
 
-    <button type="submit">
-        Удалить
-    </button>
-</form>
-
-<p>
-    <a href="{% url 'archive:location_detail' location.pk %}">
-        Отмена
-    </a>
-</p>
-
+    <div class="danger-panel__actions">
+        <form method="post">
+            {% csrf_token %}
+            <button class="button button--danger" type="submit">Удалить локацию</button>
+        </form>
+        <a class="button button--ghost" href="{% url 'archive:location_detail' location.pk %}">Отмена</a>
+    </div>
+</section>
 {% endblock %}

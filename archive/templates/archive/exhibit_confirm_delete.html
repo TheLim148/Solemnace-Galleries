@@ -1,34 +1,24 @@
 {% extends "archive/base.html" %}
 
-{% block title %}
-Удаление {{ exhibit.title }}
-{% endblock %}
+{% block title %}Удаление {{ exhibit.title }}{% endblock %}
+{% block body_class %}service-page danger-page{% endblock %}
 
 {% block content %}
+<section class="danger-panel service-section">
+    <div class="danger-panel__mark" aria-hidden="true">!</div>
+    <p class="service-kicker">Необратимое действие</p>
+    <h1>Удалить экспонат?</h1>
+    <p class="danger-panel__lead">
+        Запись «{{ exhibit.title }}» будет удалена вместе с зависимыми медиаматериалами и связями.
+        Это действие нельзя отменить.
+    </p>
 
-<h1>Удалить экспонат?</h1>
-
-<p>
-    Вы действительно хотите удалить
-    «{{ exhibit.title }}»?
-</p>
-
-<p>
-    Это действие нельзя отменить.
-</p>
-
-<form method="post">
-    {% csrf_token %}
-
-    <button type="submit">
-        Удалить
-    </button>
-</form>
-
-<p>
-    <a href="{% url 'archive:exhibit_detail' exhibit.pk %}">
-        Отмена
-    </a>
-</p>
-
+    <div class="danger-panel__actions">
+        <form method="post">
+            {% csrf_token %}
+            <button class="button button--danger" type="submit">Удалить экспонат</button>
+        </form>
+        <a class="button button--ghost" href="{% url 'archive:exhibit_detail' exhibit.pk %}">Отмена</a>
+    </div>
+</section>
 {% endblock %}

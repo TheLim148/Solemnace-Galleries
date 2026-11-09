@@ -1,34 +1,24 @@
 {% extends "archive/base.html" %}
 
-{% block title %}
-Удаление {{ gallery.name }}
-{% endblock %}
+{% block title %}Удаление {{ gallery.name }}{% endblock %}
+{% block body_class %}service-page danger-page{% endblock %}
 
 {% block content %}
+<section class="danger-panel service-section">
+    <div class="danger-panel__mark" aria-hidden="true">!</div>
+    <p class="service-kicker">Удаление коллекции</p>
+    <h1>Удалить галерею?</h1>
+    <p class="danger-panel__lead">
+        Галерея «{{ gallery.name }}» будет удалена. Связи с экспонатами исчезнут,
+        но сами экспонаты останутся в архиве.
+    </p>
 
-<h1>Удалить галерею?</h1>
-
-<p>
-    Вы действительно хотите удалить
-    «{{ gallery.name }}»?
-</p>
-
-<p>
-    Экспонаты, находящиеся в галерее, удалены не будут.
-</p>
-
-<form method="post">
-    {% csrf_token %}
-
-    <button type="submit">
-        Удалить
-    </button>
-</form>
-
-<p>
-    <a href="{% url 'archive:gallery_detail' gallery.pk %}">
-        Отмена
-    </a>
-</p>
-
+    <div class="danger-panel__actions">
+        <form method="post">
+            {% csrf_token %}
+            <button class="button button--danger" type="submit">Удалить галерею</button>
+        </form>
+        <a class="button button--ghost" href="{% url 'archive:gallery_detail' gallery.pk %}">Отмена</a>
+    </div>
+</section>
 {% endblock %}

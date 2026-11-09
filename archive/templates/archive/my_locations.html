@@ -1,42 +1,50 @@
 {% extends "archive/base.html" %}
 
-{% block title %}
-Мои локации — Solemnace Galleries
-{% endblock %}
+{% block title %}Мои локации — Solemnace Galleries{% endblock %}
+{% block body_class %}service-page workspace-page{% endblock %}
 
 {% block content %}
+<div class="service-heading">
+    <div>
+        <p class="service-kicker">Личный архив</p>
+        <h1>Мои локации</h1>
+        <p class="service-heading__lead">Созданные вами узлы иерархии Солемнейса.</p>
+    </div>
+    <a class="button button--primary" href="{% url 'archive:location_create' %}">Создать локацию</a>
+</div>
 
-<h1>Мои локации</h1>
+<section class="workspace-panel service-section">
+    <header class="workspace-panel__header">
+        <div>
+            <span class="form-panel__index">LOCATIONS / PERSONAL</span>
+            <h2>Узлы куратора</h2>
+        </div>
+        <span class="workspace-count">{{ locations|length }}</span>
+    </header>
 
-<p>
-    <a href="{% url 'archive:location_create' %}">
-        Создать локацию
-    </a>
-</p>
-
-{% for location in locations %}
-
-    <p>
-        <a href="{% url 'archive:location_detail' location.pk %}">
-            {{ location.name }}
-        </a>
-
-        {% if location.parent %}
-            — {{ location.parent.name }}
-        {% endif %}
-
-        |
-        <a href="{% url 'archive:location_edit' location.pk %}">
-            Редактировать
-        </a>
-    </p>
-
-{% empty %}
-
-    <p>
-        Вы ещё не создали ни одной локации.
-    </p>
-
-{% endfor %}
-
+    <div class="workspace-list">
+        {% for location in locations %}
+            <article class="workspace-row">
+                <div class="workspace-row__glyph" aria-hidden="true">L</div>
+                <div class="workspace-row__main">
+                    <a class="workspace-row__title" href="{% url 'archive:location_detail' location.pk %}">{{ location.name }}</a>
+                    <div class="workspace-row__meta">
+                        {% if location.parent %}<span>Родитель: {{ location.parent.name }}</span>{% else %}<span>Корневой узел</span>{% endif %}
+                    </div>
+                </div>
+                <div class="workspace-row__actions">
+                    <a class="button button--ghost button--small" href="{% url 'archive:location_detail' location.pk %}">Открыть</a>
+                    <a class="button button--small" href="{% url 'archive:location_edit' location.pk %}">Редактировать</a>
+                </div>
+            </article>
+        {% empty %}
+            <div class="service-empty">
+                <span class="service-empty__mark" aria-hidden="true"></span>
+                <h3>Локаций пока нет</h3>
+                <p>Создайте первый узел внутри системной структуры архива.</p>
+                <a class="button button--primary" href="{% url 'archive:location_create' %}">Создать локацию</a>
+            </div>
+        {% endfor %}
+    </div>
+</section>
 {% endblock %}

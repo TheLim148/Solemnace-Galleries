@@ -1,28 +1,42 @@
 {% extends "archive/base.html" %}
 
-{% block title %}
-Регистрация — Solemnace Galleries
-{% endblock %}
+{% block title %}Регистрация — Solemnace Galleries{% endblock %}
+{% block body_class %}service-page auth-page{% endblock %}
 
 {% block content %}
+<section class="auth-layout service-section">
+    <div class="auth-intro">
+        <p class="service-kicker">Новый куратор</p>
+        <h1>Регистрация</h1>
+        <p class="auth-intro__lead">
+            Создайте учётную запись для работы с личной частью архива.
+            Новые материалы сохраняются от вашего имени и остаются черновиками до публикации.
+        </p>
 
-<h1>Регистрация</h1>
+        <div class="auth-sigil" aria-hidden="true">
+            <span></span>
+        </div>
+    </div>
 
-<form method="post">
-    {% csrf_token %}
+    <div class="form-panel auth-panel">
+        <header class="form-panel__header">
+            <span class="form-panel__index">AUTH / 02</span>
+            <h2>Создание профиля</h2>
+        </header>
 
-    {{ form.as_p }}
+        <form method="post" class="archive-form">
+            {% csrf_token %}
+            {{ form.as_p }}
 
-    <button type="submit">
-        Зарегистрироваться
-    </button>
-</form>
+            <div class="form-actions">
+                <button class="button button--primary" type="submit">Зарегистрироваться</button>
+            </div>
+        </form>
 
-<p>
-    Уже есть аккаунт?
-    <a href="{% url 'accounts:login' %}">
-        Войти
-    </a>
-</p>
-
+        <p class="form-panel__footnote">
+            Уже есть аккаунт?
+            <a href="{% url 'accounts:login' %}">Войти</a>
+        </p>
+    </div>
+</section>
 {% endblock %}

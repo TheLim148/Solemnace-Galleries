@@ -1,33 +1,35 @@
 {% extends "archive/base.html" %}
 
-{% block title %}
-{% if editing %}
-    Редактирование {{ gallery.name }}
-{% else %}
-    Создание галереи
-{% endif %}
-{% endblock %}
+{% block title %}{% if editing %}Редактирование {{ gallery.name }}{% else %}Создание галереи{% endif %}{% endblock %}
+{% block body_class %}service-page form-page{% endblock %}
 
 {% block content %}
+<div class="service-heading">
+    <div>
+        <p class="service-kicker">Галереи / управление</p>
+        <h1>{% if editing %}Редактировать галерею{% else %}Создать галерею{% endif %}</h1>
+        <p class="service-heading__lead">
+            Галерея объединяет экспонаты в тематическую коллекцию и всегда принадлежит одной локации.
+        </p>
+    </div>
+    <a class="button button--ghost" href="{% if editing %}{% url 'archive:gallery_detail' gallery.pk %}{% else %}{% url 'archive:my_galleries' %}{% endif %}">Назад</a>
+</div>
 
-{% if editing %}
-    <h1>Редактировать галерею</h1>
-{% else %}
-    <h1>Создать галерею</h1>
-{% endif %}
+<section class="form-panel service-section">
+    <header class="form-panel__header">
+        <span class="form-panel__index">GALLERY / {% if editing %}EDIT{% else %}NEW{% endif %}</span>
+        <h2>Параметры коллекции</h2>
+    </header>
 
-<form method="post">
-    {% csrf_token %}
+    <form method="post" class="archive-form">
+        {% csrf_token %}
+        {{ form.as_p }}
 
-    {{ form.as_p }}
-
-    <button type="submit">
-        {% if editing %}
-            Сохранить изменения
-        {% else %}
-            Создать галерею
-        {% endif %}
-    </button>
-</form>
-
+        <div class="form-actions">
+            <button class="button button--primary" type="submit">
+                {% if editing %}Сохранить изменения{% else %}Создать галерею{% endif %}
+            </button>
+        </div>
+    </form>
+</section>
 {% endblock %}

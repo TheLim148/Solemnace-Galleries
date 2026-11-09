@@ -1,32 +1,50 @@
 {% extends "archive/base.html" %}
 
-{% block title %}
-Избранное — Solemnace Galleries
-{% endblock %}
+{% block title %}Избранное — Solemnace Galleries{% endblock %}
+{% block body_class %}service-page workspace-page{% endblock %}
 
 {% block content %}
+<div class="service-heading">
+    <div>
+        <p class="service-kicker">Личная подборка</p>
+        <h1>Избранное</h1>
+        <p class="service-heading__lead">Экспонаты, сохранённые для быстрого возвращения к ним.</p>
+    </div>
+    <a class="button button--ghost" href="{% url 'archive:exhibit_list' %}">Открыть каталог</a>
+</div>
 
-<h1>Избранное</h1>
+<section class="workspace-panel service-section">
+    <header class="workspace-panel__header">
+        <div>
+            <span class="form-panel__index">FAVORITES / PERSONAL</span>
+            <h2>Сохранённые материалы</h2>
+        </div>
+        <span class="workspace-count">{{ favorites|length }}</span>
+    </header>
 
-{% for favorite in favorites %}
-
-    <p>
-        <a href="{% url 'archive:exhibit_detail' favorite.exhibit.pk %}">
-            {{ favorite.exhibit.title }}
-        </a>
-
-        — {{ favorite.exhibit.category.name }}
-
-        — добавлен
-        {{ favorite.created_at|date:"d.m.Y H:i" }}
-    </p>
-
-{% empty %}
-
-    <p>
-        В избранном пока ничего нет.
-    </p>
-
-{% endfor %}
-
+    <div class="workspace-list">
+        {% for favorite in favorites %}
+            <article class="workspace-row">
+                <div class="workspace-row__glyph workspace-row__glyph--favorite" aria-hidden="true">◆</div>
+                <div class="workspace-row__main">
+                    <a class="workspace-row__title" href="{% url 'archive:exhibit_detail' favorite.exhibit.pk %}">{{ favorite.exhibit.title }}</a>
+                    <div class="workspace-row__meta">
+                        <span>{{ favorite.exhibit.category.name }}</span>
+                        <span>Добавлен {{ favorite.created_at|date:"d.m.Y H:i" }}</span>
+                    </div>
+                </div>
+                <div class="workspace-row__actions">
+                    <a class="button button--ghost button--small" href="{% url 'archive:exhibit_detail' favorite.exhibit.pk %}">Открыть</a>
+                </div>
+            </article>
+        {% empty %}
+            <div class="service-empty">
+                <span class="service-empty__mark" aria-hidden="true"></span>
+                <h3>Избранное пусто</h3>
+                <p>Добавляйте опубликованные экспонаты в избранное с их страницы.</p>
+                <a class="button button--primary" href="{% url 'archive:exhibit_list' %}">Перейти в каталог</a>
+            </div>
+        {% endfor %}
+    </div>
+</section>
 {% endblock %}

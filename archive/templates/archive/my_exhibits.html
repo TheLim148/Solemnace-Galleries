@@ -1,42 +1,51 @@
 {% extends "archive/base.html" %}
 
-{% block title %}
-Мои экспонаты — Solemnace Galleries
-{% endblock %}
+{% block title %}Мои экспонаты — Solemnace Galleries{% endblock %}
+{% block body_class %}service-page workspace-page{% endblock %}
 
 {% block content %}
+<div class="service-heading">
+    <div>
+        <p class="service-kicker">Личный архив</p>
+        <h1>Мои экспонаты</h1>
+        <p class="service-heading__lead">Черновики, материалы на модерации и уже опубликованные записи вашего архива.</p>
+    </div>
+    <a class="button button--primary" href="{% url 'archive:exhibit_create' %}">Создать экспонат</a>
+</div>
 
-<h1>Мои экспонаты</h1>
+<section class="workspace-panel service-section">
+    <header class="workspace-panel__header">
+        <div>
+            <span class="form-panel__index">EXHIBITS / PERSONAL</span>
+            <h2>Материалы куратора</h2>
+        </div>
+        <span class="workspace-count">{{ exhibits|length }}</span>
+    </header>
 
-<p>
-    <a href="{% url 'archive:exhibit_create' %}">
-        Создать новый экспонат
-    </a>
-</p>
-
-{% if exhibits %}
-    <ul>
+    <div class="workspace-list">
         {% for exhibit in exhibits %}
-            <li>
-                <a href="{% url 'archive:exhibit_detail' exhibit.pk %}">
-                    {{ exhibit.title }}
-                </a>
-
-                — {{ exhibit.get_status_display }}
-
-                {% if exhibit.category %}
-                    — {{ exhibit.category.name }}
-                {% endif %}
-
-                |
-                <a href="{% url 'archive:exhibit_edit' exhibit.pk %}">
-                    Редактировать
-                </a>
-            </li>
+            <article class="workspace-row">
+                <div class="workspace-row__glyph" aria-hidden="true">E</div>
+                <div class="workspace-row__main">
+                    <a class="workspace-row__title" href="{% url 'archive:exhibit_detail' exhibit.pk %}">{{ exhibit.title }}</a>
+                    <div class="workspace-row__meta">
+                        {% if exhibit.category %}<span>{{ exhibit.category.name }}</span>{% endif %}
+                        <span class="status-chip status-chip--{{ exhibit.status|lower }}">{{ exhibit.get_status_display }}</span>
+                    </div>
+                </div>
+                <div class="workspace-row__actions">
+                    <a class="button button--ghost button--small" href="{% url 'archive:exhibit_detail' exhibit.pk %}">Открыть</a>
+                    <a class="button button--small" href="{% url 'archive:exhibit_edit' exhibit.pk %}">Редактировать</a>
+                </div>
+            </article>
+        {% empty %}
+            <div class="service-empty">
+                <span class="service-empty__mark" aria-hidden="true"></span>
+                <h3>Архив пока пуст</h3>
+                <p>Создайте первый экспонат — он автоматически сохранится как черновик.</p>
+                <a class="button button--primary" href="{% url 'archive:exhibit_create' %}">Создать экспонат</a>
+            </div>
         {% endfor %}
-    </ul>
-{% else %}
-    <p>Вы ещё не создали ни одного экспоната.</p>
-{% endif %}
-
+    </div>
+</section>
 {% endblock %}
