@@ -37,6 +37,37 @@ class Location(models.Model):
             ),
         ]
 
+    def clean(self):
+        super().clean()
+
+        if not self.is_system and self.parent_id is None:
+            raise ValidationError({
+                "parent": "Обычная локация должна иметь родительскую локацию."
+            })
+
+        if self.parent_id is None:
+            return
+
+        seen = set()
+        current = self.parent
+
+        while current is not None:
+            if current.pk in seen:
+                raise ValidationError({
+                    "parent": "Обнаружен цикл в иерархии локаций."
+                })
+            seen.add(current.pk)
+
+            if self.pk is not None and current.pk == self.pk:
+                raise ValidationError({
+                    "parent": (
+                        "Нельзя переместить локацию внутрь самой себя "
+                        "или одной из её дочерних локаций."
+                    )
+                })
+
+            current = current.parent
+
     def __str__(self):
         return self.name
 

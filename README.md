@@ -1,33 +1,31 @@
 # Solemnace Galleries
 
-Solemnace Galleries is a Django web application for cataloguing and managing digital galleries, locations and exhibits.
+**Solemnace Galleries** — учебная информационная система каталогизации и управления цифровыми галереями и экспонатами.
 
-The project is inspired by the concept of Solemnace and Trazyn the Infinite's collection from Warhammer 40,000, but the application architecture itself is generic: it can be used to organise exhibits into hierarchical locations and thematic galleries, attach media and sources, and publish content after moderation.
+Проект вдохновлён образом планеты Солемнейс и коллекции Тразина Бесконечного из Warhammer 40,000, однако сама архитектура системы универсальна: экспонаты каталогизируются, объединяются в тематические галереи, размещаются внутри иерархии локаций, снабжаются медиафайлами, тегами и источниками и проходят простой цикл публикации.
 
-## Current status
+## Состояние проекта
 
-The project is under active development as a college coursework project.
+На текущем этапе реализован законченный MVP курсового проекта:
 
-The current MVP already supports the main cataloguing workflow: authentication, content ownership, exhibit moderation, gallery and location management, media uploads, favorites, search and filtering.
+- регистрация, вход и выход пользователей;
+- роли пользователя и администратора;
+- иерархические локации с защищённой системной корневой локацией;
+- создание, редактирование и удаление собственных локаций;
+- создание, редактирование и удаление галерей;
+- создание и редактирование экспонатов;
+- категории, теги и источники;
+- связь `Gallery ↔ Exhibit` многие-ко-многим;
+- связанные экспонаты;
+- загрузка изображений и GIF;
+- избранное;
+- поиск и фильтрация каталога;
+- статусы публикации и отправка на модерацию;
+- разграничение доступа владельца, постороннего пользователя и администратора;
+- Django Admin для технического управления и финальной модерации;
+- адаптированный интерфейс в стилистике цифрового архива Solemnace.
 
-The next development stage is interface styling and final project polishing.
-
-## Features
-
-- User registration, login and logout.
-- User and administrator roles.
-- Hierarchical locations with a protected system root.
-- User-created galleries assigned to locations.
-- Exhibits with categories, tags, sources and media.
-- Many-to-many relation between galleries and exhibits.
-- Related exhibits.
-- Exhibit lifecycle: draft, pending review, published and rejected.
-- Owner and administrator access control.
-- Favorites for authenticated users.
-- Public exhibit search by text, category and tag.
-- Django Admin for technical administration and moderation.
-
-## Technology stack
+## Технологии
 
 - Python 3.12
 - Django 6.1
@@ -35,95 +33,93 @@ The next development stage is interface styling and final project polishing.
 - psycopg 3
 - python-dotenv
 - uv
-- Django Templates / HTML
+- Django Templates
+- HTML / CSS
 
-CSS and small client-side JavaScript are planned for the interface layer.
-
-## Project structure
+## Структура проекта
 
 ```text
 .
-├── accounts/                 # Authentication and custom User model
-├── archive/                  # Main catalog domain
+├── accounts/                 # Пользователи, регистрация и авторизация
+├── archive/                  # Предметная область архива
 │   ├── migrations/
+│   ├── static/archive/css/
 │   ├── templates/archive/
 │   ├── views/
-│   │   ├── exhibits.py       # Exhibit CRUD, moderation and media
-│   │   ├── favorites.py      # Favorites
-│   │   ├── galleries.py      # Gallery pages and CRUD
-│   │   ├── locations.py      # Location pages and CRUD
-│   │   └── pages.py          # General pages
+│   │   ├── exhibits.py       # Экспонаты, модерация и Media
+│   │   ├── favorites.py      # Избранное
+│   │   ├── galleries.py      # Галереи
+│   │   ├── locations.py      # Локации
+│   │   └── pages.py          # Главная страница
 │   ├── admin.py
 │   ├── forms.py
 │   ├── models.py
-│   ├── permissions.py        # Shared access-control rules
-│   ├── services.py           # Reusable domain operations
+│   ├── permissions.py        # Общие правила доступа
+│   ├── services.py           # Общие операции предметной области
+│   ├── signals.py            # Очистка файлов Media
 │   └── urls.py
-├── config/                   # Django project configuration
-├── docs/                     # Project notes and documentation
-├── src/solemnace_galleries/  # Python package used by the uv build backend
+├── config/                   # Конфигурация Django
+├── docs/                     # Рабочая документация проекта
+├── prototype/                # Ранний HTML/CSS-прототип
+├── src/solemnace_galleries/  # Пакет uv_build
+├── .env.example
 ├── manage.py
 ├── pyproject.toml
 └── uv.lock
 ```
 
-The `src/solemnace_galleries` package should not be removed: the project uses the `uv_build` build backend and keeps the package as part of the uv project layout.
+Каталог `src/solemnace_galleries` удалять не следует: проект использует `uv_build`, и пакет является частью структуры uv-проекта.
 
-## Data model overview
+## Модель данных
 
-The central entities are:
+Основные связи:
 
 ```text
-Location 1 ─── N Gallery
-Gallery  M ─── N Exhibit
-User     1 ─── N Exhibit
-User     1 ─── N Gallery
-User     1 ─── N Location
-Category 1 ─── N Exhibit
-Exhibit  M ─── N Tag
-Exhibit  M ─── N Source
-User     M ─── N Exhibit   (Favorite)
-Exhibit  M ─── N Exhibit   (related exhibits)
+Location  1 ─── N Gallery
+Gallery   M ─── N Exhibit
+User      1 ─── N Exhibit
+User      1 ─── N Gallery
+User      1 ─── N Location
+Category  1 ─── N Exhibit
+Exhibit   M ─── N Tag
+Exhibit   M ─── N Source
+User      M ─── N Exhibit    через Favorite
+Exhibit   M ─── N Exhibit    связанные экспонаты
 ```
 
-Locations form a hierarchy through a self-reference. The root `Solemnace` location is a system location and is protected from ordinary user-interface editing and deletion.
+`Location` образует дерево через ссылку на родительскую локацию. Системная корневая локация `Solemnace` создаётся автоматически миграцией и не редактируется через обычный пользовательский интерфейс.
 
-## Local setup
+## Локальный запуск
 
-### 1. Requirements
+### 1. Требования
 
-Install:
+Нужны:
 
-- Python 3.12
-- PostgreSQL
-- uv
+- Python 3.12;
+- PostgreSQL;
+- uv.
 
-### 2. Install Python dependencies
-
-From the project root:
+### 2. Установка зависимостей
 
 ```bash
 uv sync
 ```
 
-### 3. Configure PostgreSQL
+### 3. Настройка окружения
 
-Create a PostgreSQL database and a user for the application. The default development names used by the project are:
-
-```text
-Database: solemnace
-User: solemnace_app
-```
-
-Copy the environment template:
+Создать локальный файл `.env`:
 
 ```bash
 cp .env.example .env
 ```
 
-Then fill in the real database password in `.env`:
+Минимальная конфигурация:
 
 ```dotenv
+DJANGO_SECRET_KEY=replace-me
+DJANGO_DEBUG=True
+DJANGO_ALLOWED_HOSTS=127.0.0.1,localhost
+
 DB_NAME=solemnace
 DB_USER=solemnace_app
 DB_PASSWORD=your-password
@@ -131,93 +127,120 @@ DB_HOST=127.0.0.1
 DB_PORT=5432
 ```
 
-`.env` is ignored by Git and must not be committed.
+`.env` игнорируется Git и не должен попадать в репозиторий.
 
-### 4. Apply migrations
+### 4. Миграции
 
 ```bash
 uv run python manage.py migrate
 ```
 
-### 5. Create an administrator
+Миграция `archive.0002_create_root_location` автоматически создаст системную корневую локацию `Solemnace`, если её ещё нет.
+
+### 5. Администратор
 
 ```bash
 uv run python manage.py createsuperuser
 ```
 
-### 6. Create the root location
-
-Until the root location is created automatically by a data migration, create it once through Django Admin:
-
-```text
-Name: Solemnace
-System location: yes
-Owner: empty
-Parent: empty
-```
-
-### 7. Run the development server
+### 6. Запуск
 
 ```bash
 uv run python manage.py runserver
 ```
 
-Open the local Django address printed in the terminal. Django Admin is available at `/admin/`.
+Панель Django Admin доступна по адресу `/admin/`.
 
-## Useful development commands
+## Полезные команды
 
-Check Django configuration:
+Проверка конфигурации:
 
 ```bash
 uv run python manage.py check
 ```
 
-Create migrations after model changes:
-
-```bash
-uv run python manage.py makemigrations
-```
-
-Apply migrations:
-
-```bash
-uv run python manage.py migrate
-```
-
-Run tests:
+Запуск тестов:
 
 ```bash
 uv run python manage.py test
 ```
 
-## Content and access rules
+Создание новых миграций после изменения моделей:
 
-An ordinary user can create and manage their own exhibits, galleries and locations. Administrators can manage user content as well.
-
-An exhibit can belong to multiple galleries. Deleting a gallery removes its membership links but does not delete the exhibits themselves.
-
-A normal location must have a parent. A location cannot be moved inside itself or one of its descendants. A location containing child locations or galleries cannot be deleted through the application.
-
-Unpublished exhibits are visible only to their owner and administrators. Public catalog pages contain only published exhibits.
-
-When creating or editing an exhibit, an ordinary user can attach it only to galleries they own. Administrators can select any gallery.
-
-## Moderation workflow
-
-```text
-Draft
-  ↓
-Pending review
-  ↓
-Published
+```bash
+uv run python manage.py makemigrations
 ```
 
-A rejected exhibit can be edited and submitted for review again.
+Применение миграций:
 
-At the current MVP stage, the final moderation decision is performed through Django Admin.
+```bash
+uv run python manage.py migrate
+```
+
+## Правила предметной области
+
+### Экспонаты
+
+Экспонат имеет владельца, одну категорию и статус публикации. Он может иметь несколько тегов, источников, медиафайлов и входить сразу в несколько галерей.
+
+Публичный каталог показывает только экспонаты со статусом `PUBLISHED`. Неопубликованную запись видят её владелец и администратор архива.
+
+### Галереи
+
+Каждая галерея принадлежит одной локации, но содержит множество экспонатов. Один и тот же экспонат может одновременно находиться в нескольких галереях.
+
+Удаление галереи удаляет только связи с экспонатами, но не сами экспонаты.
+
+### Локации
+
+Обычная локация имеет владельца и родительскую локацию. Система не позволяет переместить локацию внутрь самой себя или одного из её потомков.
+
+Локацию нельзя удалить через пользовательский интерфейс, пока в ней есть дочерние локации или галереи.
+
+### Media
+
+Через пользовательский интерфейс разрешены:
+
+- JPG / JPEG;
+- PNG;
+- WEBP;
+- GIF.
+
+Максимальный размер одного файла — 10 МБ. При удалении записи `Media`, в том числе каскадно вместе с экспонатом, соответствующий файл удаляется из хранилища.
+
+## Модерация
+
+Жизненный цикл экспоната:
+
+```text
+Черновик
+    ↓
+На модерации
+    ↓
+Опубликован
+```
+
+Отклонённый экспонат можно исправить и снова отправить на модерацию.
+
+На текущем этапе финальное изменение статуса `PENDING → PUBLISHED / REJECTED` выполняется через Django Admin.
+
+## Тесты
+
+Автоматические тесты покрывают ключевые правила MVP, в том числе:
+
+- публичность и приватность экспонатов;
+- доступ владельца и администратора;
+- связь экспоната с несколькими галереями;
+- удаление галереи без удаления экспоната;
+- защиту от циклов в дереве локаций;
+- запрет удаления непустой локации;
+- избранное;
+- валидацию Media;
+- удаление физического файла Media;
+- регистрацию пользователя.
 
 ## Disclaimer
 
-Solemnace Galleries is a non-commercial fan-inspired educational project and is not affiliated with Games Workshop.
+Solemnace Galleries — некоммерческий учебный fan-inspired проект и не связан с Games Workshop.
 
-Warhammer 40,000 and related names, characters and materials belong to their respective rights holders.
+Warhammer 40,000 и связанные названия, персонажи и материалы принадлежат соответствующим правообладателям.

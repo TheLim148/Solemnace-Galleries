@@ -6,7 +6,15 @@ from django.http import Http404
 from django.shortcuts import get_object_or_404, redirect, render
 
 from ..forms import ExhibitForm, MediaForm
-from ..models import Category, Exhibit, ExhibitRelation, Favorite, Gallery, Media, Tag
+from ..models import (
+    Category,
+    Exhibit,
+    ExhibitRelation,
+    Favorite,
+    Gallery,
+    Media,
+    Tag,
+)
 from ..permissions import can_manage_exhibit, can_view_exhibit, is_archive_admin
 from ..services import replace_exhibit_links
 
@@ -331,7 +339,6 @@ def media_delete(request, pk):
     if request.method != "POST":
         raise PermissionDenied
 
-    media.file.delete(save=False)
     media.delete()
 
     return redirect("archive:exhibit_detail", pk=exhibit.pk)

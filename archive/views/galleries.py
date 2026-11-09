@@ -84,6 +84,7 @@ def gallery_detail(request, pk):
             "query": query,
             "selected_category": category_id,
             "published_total": published_total,
+            "can_manage": can_manage_gallery(request.user, gallery),
         },
     )
 

@@ -1,3 +1,5 @@
+from pathlib import Path
+
 from django import forms
 from django.db.models import Q
 
@@ -53,6 +55,10 @@ class ExhibitForm(forms.ModelForm):
 
 
 class MediaForm(forms.ModelForm):
+    MAX_FILE_SIZE = 10 * 1024 * 1024
+    IMAGE_EXTENSIONS = {".jpg", ".jpeg", ".png", ".webp"}
+    GIF_EXTENSIONS = {".gif"}
+
     class Meta:
         model = Media
         fields = (
@@ -69,6 +75,42 @@ class MediaForm(forms.ModelForm):
             "alt_text": "Альтернативный текст",
             "position": "Позиция",
         }
+        help_texts = {
+            "file": "JPG, PNG, WEBP или GIF, не более 10 МБ.",
+        }
+
+    def clean(self):
+        cleaned_data = super().clean()
+        uploaded_file = cleaned_data.get("file")
+        media_type = cleaned_data.get("media_type")
+
+        if uploaded_file is None:
+            return cleaned_data
+
+        if uploaded_file.size > self.MAX_FILE_SIZE:
+            self.add_error("file", "Размер файла не должен превышать 10 МБ.")
+            return cleaned_data
+
+        content_type = getattr(uploaded_file, "content_type", "")
+        if content_type and not content_type.startswith("image/"):
+            self.add_error("file", "Файл должен быть изображением.")
+            return cleaned_data
+
+        extension = Path(uploaded_file.name).suffix.lower()
+
+        if media_type == Media.MediaType.GIF:
+            allowed_extensions = self.GIF_EXTENSIONS
+            error_message = "Для типа GIF необходимо загрузить файл .gif."
+        else:
+            allowed_extensions = self.IMAGE_EXTENSIONS
+            error_message = (
+                "Для изображения разрешены файлы JPG, JPEG, PNG и WEBP."
+            )
+
+        if extension not in allowed_extensions:
+            self.add_error("file", error_message)
+
+        return cleaned_data
 
 
 class GalleryForm(forms.ModelForm):
@@ -157,7 +199,15 @@ class LocationForm(forms.ModelForm):
             return parent
 
         current = parent
+        seen = set()
+
         while current is not None:
+            if current.pk in seen:
+                raise forms.ValidationError(
+                    "Обнаружен цикл в иерархии локаций."
+                )
+            seen.add(current.pk)
+
             if current.pk == self.instance.pk:
                 raise forms.ValidationError(
                     "Нельзя переместить локацию внутрь самой себя "

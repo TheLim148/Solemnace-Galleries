@@ -1,18 +1,22 @@
-# Just one txt in repo
-*.txt
-
-# Personal notes
-docs/notes
-
 # Python
 .venv/
 __pycache__/
 *.py[cod]
+.pytest_cache/
 
-# Environment
+# Environment / secrets
 .env
 
-# Django
+# Django runtime data
 media/
 staticfiles/
 *.sqlite3
+
+# Personal project notes
+*.txt
+docs/notes/
+
+# Editor / OS
+.vscode/
+.idea/
+.DS_Store

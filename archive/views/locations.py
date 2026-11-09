@@ -56,6 +56,7 @@ def location_detail(request, pk):
         {
             "location": location,
             "ancestors": _get_location_ancestors(location),
+            "can_manage": can_manage_location(request.user, location),
         },
     )
 

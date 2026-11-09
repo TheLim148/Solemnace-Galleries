@@ -46,17 +46,15 @@
             </a>
         </div>
 
-        {% if user.is_authenticated %}
-            {% if user == gallery.owner or user.is_staff or user.role == "ADMIN" %}
-                <div class="gallery-hero-panel__actions">
-                    <a class="button button--primary button--small" href="{% url 'archive:gallery_edit' gallery.pk %}">
-                        Редактировать
-                    </a>
-                    <a class="button button--ghost button--small" href="{% url 'archive:gallery_delete' gallery.pk %}">
-                        Удалить
-                    </a>
-                </div>
-            {% endif %}
+        {% if can_manage %}
+            <div class="gallery-hero-panel__actions">
+                <a class="button button--primary button--small" href="{% url 'archive:gallery_edit' gallery.pk %}">
+                    Редактировать
+                </a>
+                <a class="button button--ghost button--small" href="{% url 'archive:gallery_delete' gallery.pk %}">
+                    Удалить
+                </a>
+            </div>
         {% endif %}
     </aside>
 </section>

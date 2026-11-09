@@ -70,17 +70,15 @@
             </a>
         {% endif %}
 
-        {% if user.is_authenticated and not location.is_system %}
-            {% if user == location.owner or user.is_staff or user.role == "ADMIN" %}
-                <div class="location-dossier__actions">
-                    <a class="button button--primary" href="{% url 'archive:location_edit' location.pk %}">
-                        Редактировать
-                    </a>
-                    <a class="button button--ghost" href="{% url 'archive:location_delete' location.pk %}">
-                        Удалить
-                    </a>
-                </div>
-            {% endif %}
+        {% if can_manage %}
+            <div class="location-dossier__actions">
+                <a class="button button--primary" href="{% url 'archive:location_edit' location.pk %}">
+                    Редактировать
+                </a>
+                <a class="button button--ghost" href="{% url 'archive:location_delete' location.pk %}">
+                    Удалить
+                </a>
+            </div>
         {% endif %}
     </aside>
 

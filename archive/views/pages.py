@@ -1,7 +1,7 @@
 from django.db.models import Prefetch
 from django.shortcuts import render
 
-from archive.models import Exhibit, Gallery, Location, Media
+from ..models import Exhibit, Gallery, Location, Media
 
 
 def home(request):
