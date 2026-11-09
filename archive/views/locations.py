@@ -7,11 +7,27 @@ from ..models import Location
 from ..permissions import can_manage_location
 
 
+def _get_location_ancestors(location):
+    """Return the parent chain from the root to the direct parent."""
+    ancestors = []
+    current = location.parent
+    seen = set()
+
+    while current is not None and current.pk not in seen:
+        seen.add(current.pk)
+        ancestors.append(current)
+        current = current.parent
+
+    ancestors.reverse()
+    return ancestors
+
+
 def location_list(request):
     locations = (
         Location.objects
         .select_related("parent", "owner")
-        .order_by("name")
+        .prefetch_related("children", "galleries")
+        .order_by("-is_system", "name")
     )
 
     return render(
@@ -25,14 +41,22 @@ def location_detail(request, pk):
     location = get_object_or_404(
         Location.objects
         .select_related("parent", "owner")
-        .prefetch_related("children", "galleries"),
+        .prefetch_related(
+            "children",
+            "children__children",
+            "children__galleries",
+            "galleries",
+        ),
         pk=pk,
     )
 
     return render(
         request,
         "archive/location_detail.html",
-        {"location": location},
+        {
+            "location": location,
+            "ancestors": _get_location_ancestors(location),
+        },
     )
 
 

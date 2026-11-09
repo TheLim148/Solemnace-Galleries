@@ -1,22 +1,31 @@
 from django.contrib.auth.decorators import login_required
 from django.core.exceptions import PermissionDenied
 from django.db import transaction
-from django.db.models import Q
+from django.db.models import Prefetch, Q
 from django.http import Http404
 from django.shortcuts import get_object_or_404, redirect, render
 
 from ..forms import ExhibitForm, MediaForm
-from ..models import Category, Exhibit, ExhibitRelation, Favorite, Media, Tag
+from ..models import Category, Exhibit, ExhibitRelation, Favorite, Gallery, Media, Tag
 from ..permissions import can_manage_exhibit, can_view_exhibit, is_archive_admin
 from ..services import replace_exhibit_links
 
 
 def exhibit_list(request):
+    published = Exhibit.objects.filter(status=Exhibit.Status.PUBLISHED)
+    published_total = published.count()
+
     exhibits = (
-        Exhibit.objects
-        .filter(status=Exhibit.Status.PUBLISHED)
+        published
         .select_related("category", "owner")
-        .prefetch_related("tags")
+        .prefetch_related(
+            "tags",
+            Prefetch(
+                "media",
+                queryset=Media.objects.order_by("position", "id"),
+                to_attr="ordered_media",
+            ),
+        )
         .order_by("-created_at")
     )
 
@@ -38,16 +47,23 @@ def exhibit_list(request):
     if tag_id:
         exhibits = exhibits.filter(tags__id=tag_id).distinct()
 
+    categories = Category.objects.order_by("name")
+    tags = Tag.objects.order_by("name")
+
     return render(
         request,
         "archive/exhibit_list.html",
         {
             "exhibits": exhibits,
-            "categories": Category.objects.order_by("name"),
-            "tags": Tag.objects.order_by("name"),
+            "categories": categories,
+            "tags": tags,
             "query": query,
             "selected_category": category_id,
             "selected_tag": tag_id,
+            "published_total": published_total,
+            "result_count": exhibits.count(),
+            "category_total": categories.count(),
+            "tag_total": tags.count(),
         },
     )
 
@@ -56,7 +72,20 @@ def exhibit_detail(request, pk):
     exhibit = get_object_or_404(
         Exhibit.objects
         .select_related("category", "owner")
-        .prefetch_related("tags", "sources", "media", "galleries"),
+        .prefetch_related(
+            "tags",
+            "sources",
+            Prefetch(
+                "media",
+                queryset=Media.objects.order_by("position", "id"),
+            ),
+            Prefetch(
+                "galleries",
+                queryset=Gallery.objects
+                .select_related("location")
+                .order_by("name"),
+            ),
+        ),
         pk=pk,
     )
 
@@ -75,7 +104,17 @@ def exhibit_detail(request, pk):
         else relation.exhibit_a_id
         for relation in relations
     ]
-    related_exhibits = Exhibit.objects.filter(pk__in=related_ids)
+    related_exhibits = (
+        Exhibit.objects
+        .filter(pk__in=related_ids)
+        .select_related("category")
+        .prefetch_related(
+            Prefetch(
+                "media",
+                queryset=Media.objects.order_by("position", "id"),
+            )
+        )
+    )
 
     if not is_archive_admin(request.user):
         if request.user.is_authenticated:
@@ -103,6 +142,15 @@ def exhibit_detail(request, pk):
             "exhibit": exhibit,
             "related_exhibits": related_exhibits,
             "is_favorite": is_favorite,
+            "can_manage": can_manage_exhibit(request.user, exhibit),
+            "can_submit": (
+                request.user.is_authenticated
+                and exhibit.owner_id == request.user.id
+                and exhibit.status in (
+                    Exhibit.Status.DRAFT,
+                    Exhibit.Status.REJECTED,
+                )
+            ),
         },
     )
 

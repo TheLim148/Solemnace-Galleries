@@ -12,7 +12,7 @@
     <link rel="stylesheet" href="{% static 'archive/css/components.css' %}">
     <link rel="stylesheet" href="{% static 'archive/css/pages.css' %}">
 </head>
-<body>
+<body class="{% block body_class %}{% endblock %}">
 
 <header class="site-header">
     <div class="site-header__inner">

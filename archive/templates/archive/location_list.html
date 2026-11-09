@@ -1,27 +1,81 @@
 {% extends "archive/base.html" %}
 
-{% block title %}
-Локации — Solemnace Galleries
-{% endblock %}
+{% block title %}Локации — Solemnace Galleries{% endblock %}
+{% block body_class %}location-list-page{% endblock %}
 
 {% block content %}
+<section class="location-index">
+    <header class="location-index__header">
+        <div>
+            <span class="eyebrow">Структура архива</span>
+            <h1>Локации</h1>
+            <p class="location-index__lead">
+                Иерархия хранилищ Солемнейса. Каждая локация может содержать
+                дочерние области и тематические галереи.
+            </p>
+        </div>
 
-<h1>Локации</h1>
-
-<ul>
-    {% for location in locations %}
-        <li>
-            <a href="{% url 'archive:location_detail' location.pk %}">
-                {{ location.name }}
+        {% if user.is_authenticated %}
+            <a class="button button--primary" href="{% url 'archive:location_create' %}">
+                Создать локацию
             </a>
+        {% endif %}
+    </header>
 
-            {% if location.parent %}
-                — внутри {{ location.parent.name }}
-            {% endif %}
-        </li>
-    {% empty %}
-        <li>Локации отсутствуют.</li>
-    {% endfor %}
-</ul>
+    <div class="location-index__grid">
+        {% for location in locations %}
+            <a
+                class="location-card{% if location.is_system %} location-card--system{% endif %}"
+                href="{% url 'archive:location_detail' location.pk %}"
+            >
+                <span class="location-card__glyph" aria-hidden="true">
+                    <span></span>
+                </span>
 
+                <span class="location-card__copy">
+                    <span class="location-card__meta">
+                        {% if location.is_system %}
+                            Системный узел
+                        {% elif location.parent %}
+                            Внутри {{ location.parent.name }}
+                        {% else %}
+                            Корневая локация
+                        {% endif %}
+                    </span>
+
+                    <strong>{{ location.name }}</strong>
+
+                    {% if location.description %}
+                        <span class="location-card__description">
+                            {{ location.description|truncatechars:150 }}
+                        </span>
+                    {% else %}
+                        <span class="location-card__description location-card__description--muted">
+                            Описание пока не добавлено.
+                        </span>
+                    {% endif %}
+                </span>
+
+                <span class="location-card__stats">
+                    <span>
+                        <b>{{ location.children.count }}</b>
+                        дочерних
+                    </span>
+                    <span>
+                        <b>{{ location.galleries.count }}</b>
+                        галерей
+                    </span>
+                </span>
+
+                <span class="location-card__arrow" aria-hidden="true">›</span>
+            </a>
+        {% empty %}
+            <div class="archive-empty-state">
+                <span class="archive-empty-state__mark" aria-hidden="true"></span>
+                <strong>Локации отсутствуют</strong>
+                <p>Структура архива ещё не создана.</p>
+            </div>
+        {% endfor %}
+    </div>
+</section>
 {% endblock %}

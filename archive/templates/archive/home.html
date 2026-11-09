@@ -1,15 +1,143 @@
 {% extends "archive/base.html" %}
 
 {% block title %}
-Solemnace Galleries
+Solemnace Galleries — цифровой архив
 {% endblock %}
+
+{% block body_class %}home-page{% endblock %}
 
 {% block content %}
 
-<h1>Solemnace Galleries</h1>
+<section class="home-hero" aria-labelledby="home-title">
+    <div class="home-hero__visual">
+        <div class="home-hero__intro">
+            <p class="home-kicker">Архив цивилизаций · коллекции · знания</p>
 
-<p>
-    Цифровой архив галерей и экспонатов.
-</p>
+            <h1 id="home-title">Solemnace Galleries</h1>
+
+            <p class="home-hero__lead">
+                Цифровой архив галерей, экспонатов и связанных с ними знаний.
+                Исследуйте структуру Солемнейса, тематические коллекции и
+                каталогизированные материалы.
+            </p>
+        </div>
+
+        <div class="solemnace-orbit" aria-hidden="true">
+            <div class="solemnace-orbit__ring solemnace-orbit__ring--outer"></div>
+            <div class="solemnace-orbit__ring solemnace-orbit__ring--middle"></div>
+            <div class="solemnace-orbit__planet"></div>
+
+            <span class="solemnace-orbit__node solemnace-orbit__node--one"></span>
+            <span class="solemnace-orbit__node solemnace-orbit__node--two"></span>
+            <span class="solemnace-orbit__node solemnace-orbit__node--three"></span>
+        </div>
+
+        <div class="home-hero__actions">
+            {% if root_location %}
+                <a class="archive-gate" href="{% url 'archive:location_detail' root_location.pk %}">
+                    <span>Войти в архив</span>
+                    <span aria-hidden="true">→</span>
+                </a>
+            {% else %}
+                <a class="archive-gate" href="{% url 'archive:location_list' %}">
+                    <span>Войти в архив</span>
+                    <span aria-hidden="true">→</span>
+                </a>
+            {% endif %}
+        </div>
+
+        <div class="home-statline" aria-label="Статистика архива">
+            <div>
+                <strong>{{ location_count }}</strong>
+                <span>локаций</span>
+            </div>
+            <div>
+                <strong>{{ gallery_count }}</strong>
+                <span>галерей</span>
+            </div>
+            <div>
+                <strong>{{ published_exhibit_count }}</strong>
+                <span>экспонатов</span>
+            </div>
+        </div>
+    </div>
+
+    <aside class="home-recommendations" aria-labelledby="recommended-title">
+        <div class="home-recommendations__heading">
+            <div>
+                <span class="home-recommendations__eyebrow">Из архива</span>
+                <h2 id="recommended-title">Рекомендуемое</h2>
+            </div>
+            <a href="{% url 'archive:exhibit_list' %}" aria-label="Открыть все экспонаты">→</a>
+        </div>
+
+        <div class="home-recommendations__list">
+            {% for exhibit in featured_exhibits %}
+                <a class="recommended-item" href="{% url 'archive:exhibit_detail' exhibit.pk %}">
+                    <div class="recommended-item__media">
+                        {% with media=exhibit.media.all|first %}
+                            {% if media %}
+                                <img src="{{ media.file.url }}" alt="{{ media.alt_text|default:exhibit.title }}">
+                            {% else %}
+                                <span class="recommended-item__placeholder" aria-hidden="true"></span>
+                            {% endif %}
+                        {% endwith %}
+                    </div>
+
+                    <div class="recommended-item__copy">
+                        <span class="recommended-item__category">{{ exhibit.category.name }}</span>
+                        <strong>{{ exhibit.title }}</strong>
+                        <p>{{ exhibit.description|truncatechars:86 }}</p>
+                    </div>
+
+                    <span class="recommended-item__arrow" aria-hidden="true">›</span>
+                </a>
+            {% empty %}
+                <div class="home-recommendations__empty">
+                    Опубликованных экспонатов пока нет.
+                </div>
+            {% endfor %}
+        </div>
+    </aside>
+</section>
+
+<section class="home-entrypoints" aria-labelledby="explore-title">
+    <div class="home-section-heading">
+        <p class="home-kicker">Навигация по хранилищу</p>
+        <h2 id="explore-title">Исследовать архив</h2>
+    </div>
+
+    <div class="archive-paths">
+        <a class="archive-path" href="{% url 'archive:location_list' %}">
+            <span class="archive-path__index">01</span>
+            <span class="archive-path__icon archive-path__icon--locations" aria-hidden="true"></span>
+            <span class="archive-path__copy">
+                <strong>Локации</strong>
+                <span>Иерархическая структура Солемнейса и его хранилищ.</span>
+            </span>
+            <span class="archive-path__arrow" aria-hidden="true">→</span>
+        </a>
+
+        <a class="archive-path" href="{% url 'archive:gallery_list' %}">
+            <span class="archive-path__index">02</span>
+            <span class="archive-path__icon archive-path__icon--galleries" aria-hidden="true"></span>
+            <span class="archive-path__copy">
+                <strong>Галереи</strong>
+                <span>Тематические коллекции, объединяющие связанные экспонаты.</span>
+            </span>
+            <span class="archive-path__arrow" aria-hidden="true">→</span>
+        </a>
+
+        <a class="archive-path" href="{% url 'archive:exhibit_list' %}">
+            <span class="archive-path__index">03</span>
+            <span class="archive-path__icon archive-path__icon--exhibits" aria-hidden="true"></span>
+            <span class="archive-path__copy">
+                <strong>Экспонаты</strong>
+                <span>Каталогизированные объекты, материалы, источники и связи.</span>
+            </span>
+            <span class="archive-path__arrow" aria-hidden="true">→</span>
+        </a>
+    </div>
+</section>
 
 {% endblock %}

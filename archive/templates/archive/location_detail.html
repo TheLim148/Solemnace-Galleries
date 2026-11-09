@@ -1,76 +1,167 @@
 {% extends "archive/base.html" %}
 
-{% block title %}
-{{ location.name }} — Solemnace Galleries
-{% endblock %}
+{% block title %}{{ location.name }} — Solemnace Galleries{% endblock %}
+{% block body_class %}location-detail-page{% endblock %}
 
 {% block content %}
+<nav class="archive-breadcrumbs" aria-label="Путь к локации">
+    <a href="{% url 'archive:location_list' %}">Локации</a>
 
-{% if location.parent %}
-<p>
-    <a href="{% url 'archive:location_detail' location.parent.pk %}">
-        ← {{ location.parent.name }}
-    </a>
-</p>
-{% endif %}
+    {% for ancestor in ancestors %}
+        <span aria-hidden="true">›</span>
+        <a href="{% url 'archive:location_detail' ancestor.pk %}">
+            {{ ancestor.name }}
+        </a>
+    {% endfor %}
 
-<h1>{{ location.name }}</h1>
+    <span aria-hidden="true">›</span>
+    <span>{{ location.name }}</span>
+</nav>
 
-{% if user.is_authenticated %}
+<section class="location-layout">
+    <aside class="location-dossier">
+        <div class="location-dossier__emblem" aria-hidden="true">
+            <span class="location-dossier__emblem-core"></span>
+        </div>
 
-    {% if not location.is_system %}
+        <div class="location-dossier__title">
+            <span class="eyebrow">
+                {% if location.is_system %}Системная локация{% else %}Локация архива{% endif %}
+            </span>
+            <h1>{{ location.name }}</h1>
+        </div>
 
-        {% if user == location.owner or user.is_staff or user.role == "ADMIN" %}
-
-            <p>
-                <a href="{% url 'archive:location_edit' location.pk %}">
-                    Редактировать
-                </a>
-
-                |
-
-                <a href="{% url 'archive:location_delete' location.pk %}">
-                    Удалить
-                </a>
+        {% if location.description %}
+            <div class="location-dossier__description">
+                {{ location.description|linebreaks }}
+            </div>
+        {% else %}
+            <p class="location-dossier__description location-dossier__description--muted">
+                Для этой локации пока не добавлено описание.
             </p>
-
         {% endif %}
 
-    {% endif %}
+        <dl class="location-dossier__stats">
+            <div>
+                <dt>Дочерние локации</dt>
+                <dd>{{ location.children.count }}</dd>
+            </div>
+            <div>
+                <dt>Галереи</dt>
+                <dd>{{ location.galleries.count }}</dd>
+            </div>
+            <div>
+                <dt>Владелец</dt>
+                <dd>
+                    {% if location.owner %}
+                        {{ location.owner.username }}
+                    {% else %}
+                        Система
+                    {% endif %}
+                </dd>
+            </div>
+        </dl>
 
-{% endif %}
-
-{% if location.description %}
-    {{ location.description|linebreaks }}
-{% endif %}
-
-<h2>Дочерние локации</h2>
-
-<ul>
-    {% for child in location.children.all %}
-        <li>
-            <a href="{% url 'archive:location_detail' child.pk %}">
-                {{ child.name }}
+        {% if location.parent %}
+            <a class="location-parent-link" href="{% url 'archive:location_detail' location.parent.pk %}">
+                <span>Родительский узел</span>
+                <strong>{{ location.parent.name }}</strong>
+                <i aria-hidden="true">↗</i>
             </a>
-        </li>
-    {% empty %}
-        <li>Дочерних локаций нет.</li>
-    {% endfor %}
-</ul>
+        {% endif %}
 
+        {% if user.is_authenticated and not location.is_system %}
+            {% if user == location.owner or user.is_staff or user.role == "ADMIN" %}
+                <div class="location-dossier__actions">
+                    <a class="button button--primary" href="{% url 'archive:location_edit' location.pk %}">
+                        Редактировать
+                    </a>
+                    <a class="button button--ghost" href="{% url 'archive:location_delete' location.pk %}">
+                        Удалить
+                    </a>
+                </div>
+            {% endif %}
+        {% endif %}
+    </aside>
 
-<h2>Галереи</h2>
+    <div class="location-map-panel">
+        <div class="location-map-panel__header">
+            <div>
+                <span class="eyebrow">Навигационная схема</span>
+                <h2>Структура узла</h2>
+            </div>
+            <span class="location-map-panel__count">
+                {{ location.children.count }} связей
+            </span>
+        </div>
 
-<ul>
-    {% for gallery in location.galleries.all %}
-        <li>
-            <a href="{% url 'archive:gallery_detail' gallery.pk %}">
-                {{ gallery.name }}
+        <div class="location-network{% if not location.children.all %} location-network--empty{% endif %}">
+            <div class="location-network__rings" aria-hidden="true"></div>
+
+            <div class="location-network__core">
+                <span class="location-network__core-mark" aria-hidden="true"></span>
+                <strong>{{ location.name }}</strong>
+                <small>текущий узел</small>
+            </div>
+
+            <div class="location-network__children">
+                {% for child in location.children.all %}
+                    <a class="location-node" href="{% url 'archive:location_detail' child.pk %}">
+                        <span class="location-node__orb" aria-hidden="true"></span>
+                        <span class="location-node__copy">
+                            <strong>{{ child.name }}</strong>
+                            <small>
+                                {{ child.children.count }} локаций ·
+                                {{ child.galleries.count }} галерей
+                            </small>
+                        </span>
+                    </a>
+                {% empty %}
+                    <div class="location-network__empty-copy">
+                        <strong>Конечный узел</strong>
+                        <span>У этой локации пока нет дочерних областей.</span>
+                    </div>
+                {% endfor %}
+            </div>
+        </div>
+    </div>
+</section>
+
+<section class="location-galleries">
+    <header class="section-heading-row">
+        <div>
+            <span class="eyebrow">Коллекции узла</span>
+            <h2>Галереи локации</h2>
+        </div>
+        <span class="section-heading-row__count">{{ location.galleries.count }}</span>
+    </header>
+
+    <div class="location-gallery-grid">
+        {% for gallery in location.galleries.all %}
+            <a class="location-gallery-card" href="{% url 'archive:gallery_detail' gallery.pk %}">
+                <span class="location-gallery-card__visual" aria-hidden="true">
+                    <span></span>
+                </span>
+
+                <span class="location-gallery-card__copy">
+                    <span class="location-gallery-card__type">Галерея</span>
+                    <strong>{{ gallery.name }}</strong>
+                    {% if gallery.description %}
+                        <span>{{ gallery.description|truncatechars:130 }}</span>
+                    {% else %}
+                        <span class="location-gallery-card__muted">Описание пока не добавлено.</span>
+                    {% endif %}
+                </span>
+
+                <span class="location-gallery-card__arrow" aria-hidden="true">›</span>
             </a>
-        </li>
-    {% empty %}
-        <li>В этой локации пока нет галерей.</li>
-    {% endfor %}
-</ul>
-
+        {% empty %}
+            <div class="archive-empty-state archive-empty-state--wide">
+                <span class="archive-empty-state__mark" aria-hidden="true"></span>
+                <strong>Галерей пока нет</strong>
+                <p>В этой локации ещё не создано ни одной галереи.</p>
+            </div>
+        {% endfor %}
+    </div>
+</section>
 {% endblock %}

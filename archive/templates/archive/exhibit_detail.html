@@ -1,216 +1,248 @@
 {% extends "archive/base.html" %}
 
-{% block title %}
-{{ exhibit.title }} — Solemnace Galleries
-{% endblock %}
+{% block title %}{{ exhibit.title }} — Solemnace Galleries{% endblock %}
 
 {% block content %}
+<article class="exhibit-record">
+    <nav class="record-breadcrumbs" aria-label="Навигация">
+        <a href="{% url 'archive:home' %}">Архив</a>
+        <span>/</span>
+        <a href="{% url 'archive:exhibit_list' %}">Экспонаты</a>
+        <span>/</span>
+        <span>{{ exhibit.title }}</span>
+    </nav>
 
-<h1>{{ exhibit.title }}</h1>
+    <header class="exhibit-record__header">
+        <div class="exhibit-record__heading">
+            <p class="archive-eyebrow">Архивная запись · SG-{{ exhibit.pk|stringformat:"05d" }}</p>
+            <h1>{{ exhibit.title }}</h1>
 
-{% if user.is_authenticated %}
+            <div class="exhibit-record__taxonomy">
+                <span>{{ exhibit.category.name }}</span>
+                {% for tag in exhibit.tags.all %}
+                    <span>#{{ tag.name }}</span>
+                {% endfor %}
+            </div>
+        </div>
 
-    <form
-        method="post"
-        action="{% url 'archive:favorite_toggle' exhibit.pk %}"
-        style="display: inline;"
-    >
-        {% csrf_token %}
-
-        <button type="submit">
-            {% if is_favorite %}
-                Убрать из избранного
-            {% else %}
-                Добавить в избранное
-            {% endif %}
-        </button>
-    </form>
-
-{% endif %}
-
-
-{% if user.is_authenticated %}
-
-    {% if user == exhibit.owner or user.is_staff or user.role == "ADMIN" %}
-
-        <p>
-            Статус: {{ exhibit.get_status_display }}
-
-            |
-
-            <a href="{% url 'archive:exhibit_edit' exhibit.pk %}">
-                Редактировать
-            </a>
-
-            |
-
-            <a href="{% url 'archive:exhibit_delete' exhibit.pk %}">
-                Удалить
-            </a>
-
-            {% if user == exhibit.owner %}
-
-                {% if exhibit.status == "DRAFT" or exhibit.status == "REJECTED" %}
-
-                    <form
-                        method="post"
-                        action="{% url 'archive:exhibit_submit_for_review' exhibit.pk %}"
-                        style="display: inline;"
-                    >
-                        {% csrf_token %}
-
-                    <button type="submit">
-                        Отправить на модерацию
-                    </button>
-                    </form>
-
-                {% endif %}
-
-            {% endif %}
-
-            |
-
-            <a href="{% url 'archive:media_create' exhibit.pk %}">
-                Добавить медиа
-            </a>
-
-        </p>
-
-    {% endif %}
-
-{% endif %}
-
-<p>
-    Категория:
-    {{ exhibit.category.name }}
-</p>
-
-<p>
-    Автор:
-    {{ exhibit.owner.username }}
-</p>
-
-
-<section>
-    <h2>Описание</h2>
-
-    {{ exhibit.description|linebreaks }}
-</section>
-
-
-<section>
-    <h2>Медиаматериалы</h2>
-
-    {% for media in exhibit.media.all %}
-        <figure>
-            {% if media.media_type == "IMAGE" or media.media_type == "GIF" %}
-                <img
-                    src="{{ media.file.url }}"
-                    alt="{{ media.alt_text }}"
-                    style="max-width: 500px;"
-                >
-            {% endif %}
-
-            {% if media.caption %}
-                <figcaption>
-                    {{ media.caption }}
-                </figcaption>
-            {% endif %}
-        </figure>
-
-        {% if user.is_authenticated %}
-            {% if user == exhibit.owner or user.is_staff or user.role == "ADMIN" %}
-                <form
-                    method="post"
-                    action="{% url 'archive:media_delete' media.pk %}"
-                >
+        <div class="exhibit-record__header-actions">
+            {% if user.is_authenticated %}
+                <form method="post" action="{% url 'archive:favorite_toggle' exhibit.pk %}">
                     {% csrf_token %}
-
-                    <button type="submit">
-                        Удалить медиа
+                    <button class="button {% if is_favorite %}button--primary{% endif %}" type="submit">
+                        {% if is_favorite %}В избранном{% else %}В избранное{% endif %}
                     </button>
                 </form>
             {% endif %}
-        {% endif %}
 
-    {% empty %}
-        <p>Медиаматериалы отсутствуют.</p>
-    {% endfor %}
-</section>
+            {% if can_manage %}
+                <a class="button" href="{% url 'archive:exhibit_edit' exhibit.pk %}">Редактировать</a>
+            {% endif %}
+        </div>
+    </header>
 
+    <div class="exhibit-record__layout">
+        <div class="exhibit-record__main">
+            <section class="exhibit-article">
+                <div class="section-heading">
+                    <p class="archive-eyebrow">Описание объекта</p>
+                    <h2>Архивная справка</h2>
+                </div>
 
-<section>
-    <h2>Теги</h2>
+                <div class="exhibit-article__body">
+                    {% if exhibit.description %}
+                        {{ exhibit.description|linebreaks }}
+                    {% else %}
+                        <p class="muted-copy">Описание экспоната пока не заполнено.</p>
+                    {% endif %}
+                </div>
+            </section>
 
-    {% for tag in exhibit.tags.all %}
-        <span>#{{ tag.name }}</span>
-    {% empty %}
-        <p>Теги отсутствуют.</p>
-    {% endfor %}
-</section>
+            {% if exhibit.media.all|length > 1 or can_manage %}
+                <section class="exhibit-media-section">
+                    <div class="section-heading section-heading--inline">
+                        <div>
+                            <p class="archive-eyebrow">Материалы записи</p>
+                            <h2>Медиаархив</h2>
+                        </div>
+                        {% if can_manage %}
+                            <a class="button button--small" href="{% url 'archive:media_create' exhibit.pk %}">Добавить медиа</a>
+                        {% endif %}
+                    </div>
 
+                    {% if exhibit.media.all %}
+                        <div class="exhibit-media-grid">
+                            {% for media in exhibit.media.all|slice:"1:" %}
+                                <figure class="exhibit-media-card">
+                                    <a href="{{ media.file.url }}" target="_blank" rel="noopener">
+                                        <img src="{{ media.file.url }}" alt="{{ media.alt_text|default:exhibit.title }}">
+                                    </a>
 
-<section>
-    <h2>Галереи</h2>
+                                    <figcaption>
+                                        {% if media.caption %}<span>{{ media.caption }}</span>{% endif %}
+                                        <small>{{ media.get_media_type_display }} · позиция {{ media.position }}</small>
+                                    </figcaption>
 
-    <ul>
-        {% for gallery in exhibit.galleries.all %}
-            <li>
-                <a href="{% url 'archive:gallery_detail' gallery.pk %}">
-                    {{ gallery.name }}
-                </a>
-            </li>
-        {% empty %}
-            <li>Экспонат пока не входит ни в одну галерею.</li>
-        {% endfor %}
-    </ul>
-</section>
+                                    {% if can_manage %}
+                                        <form method="post" action="{% url 'archive:media_delete' media.pk %}">
+                                            {% csrf_token %}
+                                            <button class="media-remove" type="submit">Удалить</button>
+                                        </form>
+                                    {% endif %}
+                                </figure>
+                            {% endfor %}
+                        </div>
+                    {% else %}
+                        <p class="muted-copy">Медиаматериалы отсутствуют.</p>
+                    {% endif %}
+                </section>
+            {% endif %}
 
+            <section class="exhibit-sources">
+                <div class="section-heading">
+                    <p class="archive-eyebrow">Библиография</p>
+                    <h2>Источники</h2>
+                </div>
 
-<section>
-    <h2>Связанные экспонаты</h2>
+                <div class="source-list">
+                    {% for source in exhibit.sources.all %}
+                        <div class="source-entry">
+                            <span class="source-entry__index">{{ forloop.counter|stringformat:"02d" }}</span>
+                            <div>
+                                <strong>{{ source.title }}</strong>
+                                <p>
+                                    {% if source.author %}{{ source.author }}{% endif %}
+                                    {% if source.author and source.year %} · {% endif %}
+                                    {% if source.year %}{{ source.year }}{% endif %}
+                                    {% if source.source_type %} · {{ source.source_type }}{% endif %}
+                                </p>
+                            </div>
+                            {% if source.url %}
+                                <a class="source-entry__link" href="{{ source.url }}" target="_blank" rel="noopener">Открыть ↗</a>
+                            {% endif %}
+                        </div>
+                    {% empty %}
+                        <p class="muted-copy">Источники не указаны.</p>
+                    {% endfor %}
+                </div>
+            </section>
+        </div>
 
-    <ul>
-        {% for related in related_exhibits %}
-            <li>
-                <a href="{% url 'archive:exhibit_detail' related.pk %}">
-                    {{ related.title }}
-                </a>
-            </li>
-        {% empty %}
-            <li>Связанные экспонаты отсутствуют.</li>
-        {% endfor %}
-    </ul>
-</section>
+        <aside class="exhibit-record__sidebar">
+            {% with main_media=exhibit.media.all|first %}
+                <section class="record-portrait" aria-label="Основной медиаматериал">
+                    {% if main_media %}
+                        <a href="{{ main_media.file.url }}" target="_blank" rel="noopener">
+                            <img src="{{ main_media.file.url }}" alt="{{ main_media.alt_text|default:exhibit.title }}">
+                        </a>
+                        {% if main_media.caption %}
+                            <p>{{ main_media.caption }}</p>
+                        {% endif %}
+                    {% else %}
+                        <div class="record-portrait__placeholder" aria-hidden="true"><span></span></div>
+                        <p>Основное изображение не добавлено</p>
+                    {% endif %}
+                </section>
+            {% endwith %}
 
+            <section class="record-panel">
+                <div class="record-panel__title">Паспорт экспоната</div>
 
-<section>
-    <h2>Источники</h2>
+                <dl class="record-facts">
+                    <div>
+                        <dt>Категория</dt>
+                        <dd>{{ exhibit.category.name }}</dd>
+                    </div>
+                    <div>
+                        <dt>Куратор</dt>
+                        <dd>{{ exhibit.owner.username }}</dd>
+                    </div>
+                    <div>
+                        <dt>Создан</dt>
+                        <dd>{{ exhibit.created_at|date:"d.m.Y" }}</dd>
+                    </div>
+                    <div>
+                        <dt>Обновлён</dt>
+                        <dd>{{ exhibit.updated_at|date:"d.m.Y" }}</dd>
+                    </div>
+                    {% if can_manage %}
+                        <div>
+                            <dt>Статус</dt>
+                            <dd><span class="record-status record-status--{{ exhibit.status|lower }}">{{ exhibit.get_status_display }}</span></dd>
+                        </div>
+                    {% endif %}
+                </dl>
+            </section>
 
-    <ul>
-        {% for source in exhibit.sources.all %}
-            <li>
-                {{ source.title }}
+            <section class="record-panel">
+                <div class="record-panel__title">Размещение в архиве</div>
 
-                {% if source.author %}
-                    — {{ source.author }}
-                {% endif %}
+                <div class="record-gallery-list">
+                    {% for gallery in exhibit.galleries.all %}
+                        <a href="{% url 'archive:gallery_detail' gallery.pk %}">
+                            <span>{{ gallery.name }}</span>
+                            <small>{{ gallery.location.name }}</small>
+                        </a>
+                    {% empty %}
+                        <p class="muted-copy">Экспонат пока не входит ни в одну галерею.</p>
+                    {% endfor %}
+                </div>
+            </section>
 
-                {% if source.year %}
-                    ({{ source.year }})
-                {% endif %}
+            {% if can_manage %}
+                <section class="record-panel record-panel--management">
+                    <div class="record-panel__title">Управление записью</div>
+                    <div class="record-management">
+                        <a class="button button--small" href="{% url 'archive:exhibit_edit' exhibit.pk %}">Редактировать</a>
+                        <a class="button button--small" href="{% url 'archive:media_create' exhibit.pk %}">Добавить медиа</a>
 
-                {% if source.url %}
-                    —
-                    <a href="{{ source.url }}">
-                        источник
+                        {% if can_submit %}
+                            <form method="post" action="{% url 'archive:exhibit_submit_for_review' exhibit.pk %}">
+                                {% csrf_token %}
+                                <button class="button button--small button--primary" type="submit">Отправить на модерацию</button>
+                            </form>
+                        {% endif %}
+
+                        <a class="button button--small record-management__danger" href="{% url 'archive:exhibit_delete' exhibit.pk %}">Удалить</a>
+                    </div>
+                </section>
+            {% endif %}
+        </aside>
+    </div>
+
+    <section class="related-records">
+        <div class="section-heading section-heading--inline">
+            <div>
+                <p class="archive-eyebrow">Перекрёстные ссылки</p>
+                <h2>Связанные экспонаты</h2>
+            </div>
+            <a class="text-link" href="{% url 'archive:exhibit_list' %}">Весь каталог →</a>
+        </div>
+
+        {% if related_exhibits %}
+            <div class="related-records__grid">
+                {% for related in related_exhibits %}
+                    <a class="related-record" href="{% url 'archive:exhibit_detail' related.pk %}">
+                        <div class="related-record__media">
+                            {% with related_media=related.media.all|first %}
+                                {% if related_media %}
+                                    <img src="{{ related_media.file.url }}" alt="{{ related_media.alt_text|default:related.title }}">
+                                {% else %}
+                                    <span></span>
+                                {% endif %}
+                            {% endwith %}
+                        </div>
+                        <div class="related-record__body">
+                            <small>{{ related.category.name }}</small>
+                            <h3>{{ related.title }}</h3>
+                            <span>Открыть запись →</span>
+                        </div>
                     </a>
-                {% endif %}
-            </li>
-        {% empty %}
-            <li>Источники не указаны.</li>
-        {% endfor %}
-    </ul>
-</section>
-
+                {% endfor %}
+            </div>
+        {% else %}
+            <p class="muted-copy">Связанные экспонаты отсутствуют.</p>
+        {% endif %}
+    </section>
+</article>
 {% endblock %}

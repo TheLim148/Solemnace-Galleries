@@ -1,25 +1,59 @@
 {% extends "archive/base.html" %}
 
-{% block title %}
-Галереи — Solemnace Galleries
-{% endblock %}
+{% block title %}Галереи — Solemnace Galleries{% endblock %}
+{% block body_class %}gallery-list-page{% endblock %}
 
 {% block content %}
+<section class="gallery-index">
+    <header class="gallery-index__header">
+        <div>
+            <span class="archive-kicker">Коллекции Солемнейса</span>
+            <h1>Галереи</h1>
+            <p>
+                Тематические собрания экспонатов, объединённые общей эпохой,
+                культурой, происхождением или замыслом куратора.
+            </p>
+        </div>
 
-<h1>Галереи</h1>
-
-<ul>
-    {% for gallery in galleries %}
-        <li>
-            <a href="{% url 'archive:gallery_detail' gallery.pk %}">
-                {{ gallery.name }}
+        {% if user.is_authenticated %}
+            <a class="button button--primary" href="{% url 'archive:gallery_create' %}">
+                Создать галерею
             </a>
+        {% endif %}
+    </header>
 
-            — {{ gallery.location.name }}
-        </li>
-    {% empty %}
-        <li>Галереи отсутствуют.</li>
-    {% endfor %}
-</ul>
+    <div class="gallery-index__grid">
+        {% for gallery in galleries %}
+            <a class="gallery-index-card" href="{% url 'archive:gallery_detail' gallery.pk %}">
+                <div class="gallery-index-card__visual" aria-hidden="true">
+                    <span></span>
+                </div>
 
+                <div class="gallery-index-card__body">
+                    <span class="gallery-index-card__location">{{ gallery.location.name }}</span>
+                    <h2>{{ gallery.name }}</h2>
+
+                    {% if gallery.description %}
+                        <p>{{ gallery.description|truncatechars:150 }}</p>
+                    {% else %}
+                        <p class="gallery-index-card__muted">Описание галереи пока не добавлено.</p>
+                    {% endif %}
+
+                    <div class="gallery-index-card__meta">
+                        <span>{{ gallery.published_count }} экспонатов</span>
+                        <span>Куратор: {{ gallery.owner.username }}</span>
+                    </div>
+                </div>
+
+                <span class="gallery-index-card__arrow" aria-hidden="true">›</span>
+            </a>
+        {% empty %}
+            <div class="archive-empty-state archive-empty-state--wide">
+                <span class="archive-empty-state__mark" aria-hidden="true"></span>
+                <strong>Галереи отсутствуют</strong>
+                <p>Первая коллекция ещё не сформирована.</p>
+            </div>
+        {% endfor %}
+    </div>
+</section>
 {% endblock %}

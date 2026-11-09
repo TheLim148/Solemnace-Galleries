@@ -1,62 +1,154 @@
 {% extends "archive/base.html" %}
 
-{% block title %}
-{{ gallery.name }} — Solemnace Galleries
-{% endblock %}
+{% block title %}{{ gallery.name }} — Solemnace Galleries{% endblock %}
+{% block body_class %}gallery-detail-page{% endblock %}
 
 {% block content %}
+<nav class="archive-breadcrumbs" aria-label="Навигационная цепочка">
+    <a href="{% url 'archive:home' %}">Solemnace</a>
+    <span>›</span>
+    <a href="{% url 'archive:location_detail' gallery.location.pk %}">{{ gallery.location.name }}</a>
+    <span>›</span>
+    <span>{{ gallery.name }}</span>
+</nav>
 
-<p>
-    Локация:
-    <a href="{% url 'archive:location_detail' gallery.location.pk %}">
-        {{ gallery.location.name }}
-    </a>
-</p>
+<section class="gallery-hero-panel">
+    <div class="gallery-hero-panel__emblem" aria-hidden="true">
+        <span></span>
+    </div>
 
-<h1>{{ gallery.name }}</h1>
+    <div class="gallery-hero-panel__copy">
+        <span class="archive-kicker">Галерея · {{ gallery.location.name }}</span>
+        <h1>{{ gallery.name }}</h1>
 
-{% if user.is_authenticated %}
+        {% if gallery.description %}
+            <div class="gallery-hero-panel__description">
+                {{ gallery.description|linebreaks }}
+            </div>
+        {% else %}
+            <p class="gallery-hero-panel__empty">Описание галереи пока не добавлено.</p>
+        {% endif %}
+    </div>
 
-    {% if user == gallery.owner or user.is_staff or user.role == "ADMIN" %}
-
-        <p>
-            <a href="{% url 'archive:gallery_edit' gallery.pk %}">
-                Редактировать
+    <aside class="gallery-hero-panel__meta">
+        <div>
+            <span>Экспонатов</span>
+            <strong>{{ published_total }}</strong>
+        </div>
+        <div>
+            <span>Куратор</span>
+            <strong>{{ gallery.owner.username }}</strong>
+        </div>
+        <div>
+            <span>Локация</span>
+            <a href="{% url 'archive:location_detail' gallery.location.pk %}">
+                {{ gallery.location.name }}
             </a>
+        </div>
 
-            |
+        {% if user.is_authenticated %}
+            {% if user == gallery.owner or user.is_staff or user.role == "ADMIN" %}
+                <div class="gallery-hero-panel__actions">
+                    <a class="button button--primary button--small" href="{% url 'archive:gallery_edit' gallery.pk %}">
+                        Редактировать
+                    </a>
+                    <a class="button button--ghost button--small" href="{% url 'archive:gallery_delete' gallery.pk %}">
+                        Удалить
+                    </a>
+                </div>
+            {% endif %}
+        {% endif %}
+    </aside>
+</section>
 
-            <a href="{% url 'archive:gallery_delete' gallery.pk %}">
-                Удалить
+<section class="gallery-catalog">
+    <div class="gallery-catalog__toolbar">
+        <div>
+            <span class="archive-kicker">Каталог</span>
+            <h2>Экспонаты галереи</h2>
+        </div>
+
+        <form class="gallery-filter" method="get">
+            <label class="gallery-filter__search">
+                <span class="sr-only">Поиск в галерее</span>
+                <input
+                    type="search"
+                    name="q"
+                    value="{{ query }}"
+                    placeholder="Поиск в этой галерее..."
+                >
+            </label>
+
+            <label>
+                <span class="sr-only">Категория</span>
+                <select name="category">
+                    <option value="">Все категории</option>
+                    {% for category in categories %}
+                        <option
+                            value="{{ category.pk }}"
+                            {% if selected_category == category.pk|stringformat:"s" %}selected{% endif %}
+                        >
+                            {{ category.name }}
+                        </option>
+                    {% endfor %}
+                </select>
+            </label>
+
+            <button class="button button--primary button--small" type="submit">Применить</button>
+
+            {% if query or selected_category %}
+                <a class="button button--ghost button--small" href="{% url 'archive:gallery_detail' gallery.pk %}">
+                    Сбросить
+                </a>
+            {% endif %}
+        </form>
+    </div>
+
+    <div class="gallery-exhibit-grid">
+        {% for exhibit in exhibits %}
+            <a class="gallery-exhibit-card" href="{% url 'archive:exhibit_detail' exhibit.pk %}">
+                <div class="gallery-exhibit-card__media">
+                    {% if exhibit.ordered_media %}
+                        {% with media=exhibit.ordered_media.0 %}
+                            <img src="{{ media.file.url }}" alt="{{ media.alt_text|default:exhibit.title }}">
+                        {% endwith %}
+                    {% else %}
+                        <div class="gallery-exhibit-card__placeholder" aria-hidden="true">
+                            <span></span>
+                        </div>
+                    {% endif %}
+                </div>
+
+                <div class="gallery-exhibit-card__body">
+                    <span class="gallery-exhibit-card__category">{{ exhibit.category.name }}</span>
+                    <h3>{{ exhibit.title }}</h3>
+
+                    {% if exhibit.description %}
+                        <p>{{ exhibit.description|striptags|truncatechars:110 }}</p>
+                    {% else %}
+                        <p class="gallery-exhibit-card__muted">Описание не добавлено.</p>
+                    {% endif %}
+
+                    {% if exhibit.tags.all %}
+                        <div class="gallery-exhibit-card__tags">
+                            {% for tag in exhibit.tags.all|slice:":3" %}
+                                <span>{{ tag.name }}</span>
+                            {% endfor %}
+                        </div>
+                    {% endif %}
+                </div>
             </a>
-        </p>
-
-    {% endif %}
-
-{% endif %}
-
-{% if gallery.description %}
-    {{ gallery.description|linebreaks }}
-{% endif %}
-
-<p>
-    Автор: {{ gallery.owner.username }}
-</p>
-
-<h2>Экспонаты</h2>
-
-<ul>
-    {% for exhibit in exhibits %}
-        <li>
-            <a href="{% url 'archive:exhibit_detail' exhibit.pk %}">
-                {{ exhibit.title }}
-            </a>
-
-            — {{ exhibit.category.name }}
-        </li>
-    {% empty %}
-        <li>Опубликованных экспонатов пока нет.</li>
-    {% endfor %}
-</ul>
-
+        {% empty %}
+            <div class="archive-empty-state archive-empty-state--wide">
+                <span class="archive-empty-state__mark" aria-hidden="true"></span>
+                <strong>Ничего не найдено</strong>
+                {% if query or selected_category %}
+                    <p>Измени условия поиска или сбрось фильтр.</p>
+                {% else %}
+                    <p>В этой галерее пока нет опубликованных экспонатов.</p>
+                {% endif %}
+            </div>
+        {% endfor %}
+    </div>
+</section>
 {% endblock %}

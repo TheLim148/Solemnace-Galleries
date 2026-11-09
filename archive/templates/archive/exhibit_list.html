@@ -1,128 +1,177 @@
 {% extends "archive/base.html" %}
 
-{% block title %}
-Экспонаты — Solemnace Galleries
-{% endblock %}
+{% block title %}Экспонаты — Solemnace Galleries{% endblock %}
+{% block body_class %}exhibit-list-page{% endblock %}
 
 {% block content %}
+<section class="exhibit-index">
+    <header class="exhibit-index__header">
+        <div>
+            <span class="archive-kicker">Каталог архива</span>
+            <h1>Экспонаты</h1>
+            <p>
+                Опубликованные материалы Солемнейса: личности, артефакты,
+                события, документы и другие объекты цифрового архива.
+            </p>
+        </div>
 
-<h1>Экспонаты</h1>
+        {% if user.is_authenticated %}
+            <a class="button button--primary" href="{% url 'archive:exhibit_create' %}">
+                Создать экспонат
+            </a>
+        {% endif %}
+    </header>
 
+    <div class="exhibit-index__stats" aria-label="Статистика каталога">
+        <div>
+            <span>Опубликовано</span>
+            <strong>{{ published_total }}</strong>
+        </div>
+        <div>
+            <span>Категорий</span>
+            <strong>{{ category_total }}</strong>
+        </div>
+        <div>
+            <span>Тегов</span>
+            <strong>{{ tag_total }}</strong>
+        </div>
+        <div>
+            <span>Найдено</span>
+            <strong>{{ result_count }}</strong>
+        </div>
+    </div>
+</section>
 
-<form method="get">
+<section class="exhibit-catalog">
+    <aside class="exhibit-filter-panel">
+        <div class="exhibit-filter-panel__heading">
+            <span class="archive-kicker">Навигация</span>
+            <h2>Фильтры</h2>
+        </div>
 
-    <p>
-        <label for="q">
-            Поиск:
-        </label>
-
-        <input
-            id="q"
-            type="search"
-            name="q"
-            value="{{ query }}"
-            placeholder="Название, описание, тег..."
-        >
-    </p>
-
-
-    <p>
-        <label for="category">
-            Категория:
-        </label>
-
-        <select
-            id="category"
-            name="category"
-        >
-            <option value="">
-                Все категории
-            </option>
-
-            {% for category in categories %}
-                <option
-                    value="{{ category.pk }}"
-                    {% if selected_category == category.pk|stringformat:"s" %}
-                        selected
-                    {% endif %}
+        <form class="exhibit-filter" method="get">
+            <label>
+                <span>Поиск по архиву</span>
+                <input
+                    type="search"
+                    name="q"
+                    value="{{ query }}"
+                    placeholder="Название, описание, тег..."
                 >
-                    {{ category.name }}
-                </option>
-            {% endfor %}
-        </select>
-    </p>
+            </label>
 
-
-    <p>
-        <label for="tag">
-            Тег:
-        </label>
-
-        <select
-            id="tag"
-            name="tag"
-        >
-            <option value="">
-                Все теги
-            </option>
-
-            {% for tag in tags %}
-                <option
-                    value="{{ tag.pk }}"
-                    {% if selected_tag == tag.pk|stringformat:"s" %}
-                        selected
-                    {% endif %}
-                >
-                    {{ tag.name }}
-                </option>
-            {% endfor %}
-        </select>
-    </p>
-
-
-    <button type="submit">
-        Найти
-    </button>
-
-    <a href="{% url 'archive:exhibit_list' %}">
-        Сбросить
-    </a>
-
-</form>
-
-
-<hr>
-
-
-{% if exhibits %}
-
-    <ul>
-        {% for exhibit in exhibits %}
-            <li>
-
-                <a href="{% url 'archive:exhibit_detail' exhibit.pk %}">
-                    {{ exhibit.title }}
-                </a>
-
-                — {{ exhibit.category.name }}
-
-                {% if exhibit.tags.all %}
-                    —
-                    {% for tag in exhibit.tags.all %}
-                        #{{ tag.name }}
+            <label>
+                <span>Категория</span>
+                <select name="category">
+                    <option value="">Все категории</option>
+                    {% for category in categories %}
+                        <option
+                            value="{{ category.pk }}"
+                            {% if selected_category == category.pk|stringformat:"s" %}selected{% endif %}
+                        >
+                            {{ category.name }}
+                        </option>
                     {% endfor %}
-                {% endif %}
+                </select>
+            </label>
 
-            </li>
-        {% endfor %}
-    </ul>
+            <label>
+                <span>Тег</span>
+                <select name="tag">
+                    <option value="">Все теги</option>
+                    {% for tag in tags %}
+                        <option
+                            value="{{ tag.pk }}"
+                            {% if selected_tag == tag.pk|stringformat:"s" %}selected{% endif %}
+                        >
+                            {{ tag.name }}
+                        </option>
+                    {% endfor %}
+                </select>
+            </label>
 
-{% else %}
+            <button class="button button--primary" type="submit">Применить</button>
 
-    <p>
-        Экспонаты по заданным условиям не найдены.
-    </p>
+            {% if query or selected_category or selected_tag %}
+                <a class="button button--ghost" href="{% url 'archive:exhibit_list' %}">
+                    Сбросить фильтры
+                </a>
+            {% endif %}
+        </form>
 
-{% endif %}
+        <div class="exhibit-filter-panel__note">
+            <span class="archive-node" aria-hidden="true"></span>
+            <p>
+                В публичном каталоге отображаются только опубликованные записи.
+                Черновики и материалы на модерации доступны их владельцам отдельно.
+            </p>
+        </div>
+    </aside>
 
+    <div class="exhibit-catalog__main">
+        <div class="exhibit-catalog__toolbar">
+            <div>
+                <span class="archive-kicker">Результаты</span>
+                <h2>
+                    {% if query %}
+                        Поиск: «{{ query }}»
+                    {% elif selected_category or selected_tag %}
+                        Отфильтрованный каталог
+                    {% else %}
+                        Все опубликованные экспонаты
+                    {% endif %}
+                </h2>
+            </div>
+            <span class="exhibit-catalog__count">{{ result_count }} записей</span>
+        </div>
+
+        <div class="exhibit-catalog__grid">
+            {% for exhibit in exhibits %}
+                <a class="exhibit-catalog-card" href="{% url 'archive:exhibit_detail' exhibit.pk %}">
+                    <div class="exhibit-catalog-card__media">
+                        {% if exhibit.ordered_media %}
+                            {% with media=exhibit.ordered_media.0 %}
+                                <img src="{{ media.file.url }}" alt="{{ media.alt_text|default:exhibit.title }}">
+                            {% endwith %}
+                        {% else %}
+                            <div class="exhibit-catalog-card__placeholder" aria-hidden="true">
+                                <span></span>
+                            </div>
+                        {% endif %}
+
+                        <span class="exhibit-catalog-card__index">#{{ exhibit.pk|stringformat:"04d" }}</span>
+                    </div>
+
+                    <div class="exhibit-catalog-card__body">
+                        <span class="exhibit-catalog-card__category">{{ exhibit.category.name }}</span>
+                        <h3>{{ exhibit.title }}</h3>
+
+                        {% if exhibit.description %}
+                            <p>{{ exhibit.description|striptags|truncatechars:125 }}</p>
+                        {% else %}
+                            <p class="exhibit-catalog-card__muted">Описание не добавлено.</p>
+                        {% endif %}
+
+                        <div class="exhibit-catalog-card__footer">
+                            <div class="exhibit-catalog-card__tags">
+                                {% for tag in exhibit.tags.all|slice:":3" %}
+                                    <span>{{ tag.name }}</span>
+                                {% empty %}
+                                    <span class="exhibit-catalog-card__tag-empty">Без тегов</span>
+                                {% endfor %}
+                            </div>
+                            <span class="exhibit-catalog-card__arrow" aria-hidden="true">›</span>
+                        </div>
+                    </div>
+                </a>
+            {% empty %}
+                <div class="archive-empty-state archive-empty-state--wide">
+                    <span class="archive-empty-state__mark" aria-hidden="true"></span>
+                    <strong>Экспонаты не найдены</strong>
+                    <p>Измени условия поиска или сбрось выбранные фильтры.</p>
+                </div>
+            {% endfor %}
+        </div>
+    </div>
+</section>
 {% endblock %}

@@ -1,9 +1,10 @@
 from django.contrib.auth.decorators import login_required
 from django.core.exceptions import PermissionDenied
+from django.db.models import Count, Prefetch, Q
 from django.shortcuts import get_object_or_404, redirect, render
 
 from ..forms import GalleryForm
-from ..models import Exhibit, Gallery
+from ..models import Category, Exhibit, Gallery, Media
 from ..permissions import can_manage_gallery
 
 
@@ -11,6 +12,13 @@ def gallery_list(request):
     galleries = (
         Gallery.objects
         .select_related("location", "owner")
+        .annotate(
+            published_count=Count(
+                "exhibits",
+                filter=Q(exhibits__status=Exhibit.Status.PUBLISHED),
+                distinct=True,
+            )
+        )
         .order_by("name")
     )
 
@@ -22,14 +30,49 @@ def gallery_list(request):
 
 
 def gallery_detail(request, pk):
+    media_prefetch = Prefetch(
+        "media",
+        queryset=Media.objects.order_by("position", "pk"),
+        to_attr="ordered_media",
+    )
+
     gallery = get_object_or_404(
-        Gallery.objects
-        .select_related("location", "owner")
-        .prefetch_related("exhibits__category", "exhibits__owner"),
+        Gallery.objects.select_related("location", "owner"),
         pk=pk,
     )
 
-    exhibits = gallery.exhibits.filter(status=Exhibit.Status.PUBLISHED)
+    exhibits = (
+        gallery.exhibits
+        .filter(status=Exhibit.Status.PUBLISHED)
+        .select_related("category", "owner")
+        .prefetch_related("tags", media_prefetch)
+        .order_by("title")
+    )
+
+    published_total = exhibits.count()
+
+    query = request.GET.get("q", "").strip()
+    category_id = request.GET.get("category", "")
+
+    if query:
+        exhibits = exhibits.filter(
+            Q(title__icontains=query)
+            | Q(description__icontains=query)
+            | Q(tags__name__icontains=query)
+        ).distinct()
+
+    if category_id:
+        exhibits = exhibits.filter(category_id=category_id)
+
+    categories = (
+        Category.objects
+        .filter(
+            exhibits__galleries=gallery,
+            exhibits__status=Exhibit.Status.PUBLISHED,
+        )
+        .distinct()
+        .order_by("name")
+    )
 
     return render(
         request,
@@ -37,6 +80,10 @@ def gallery_detail(request, pk):
         {
             "gallery": gallery,
             "exhibits": exhibits,
+            "categories": categories,
+            "query": query,
+            "selected_category": category_id,
+            "published_total": published_total,
         },
     )
 
