@@ -1,0 +1,133 @@
+/* Shared page-level presentation. More specific layouts can be built later. */
+
+.page-shell > h1:first-of-type {
+    position: relative;
+    width: fit-content;
+    padding-right: 1.35rem;
+}
+
+.page-shell > h1:first-of-type::after {
+    position: absolute;
+    top: 50%;
+    left: 100%;
+    width: min(18vw, 180px);
+    height: 1px;
+    content: "";
+    background: linear-gradient(90deg, var(--gold-muted), transparent);
+}
+
+.page-shell > ul,
+section > ul {
+    display: grid;
+    gap: 0.55rem;
+    margin: 1rem 0 0;
+    padding: 0;
+    list-style: none;
+}
+
+.page-shell > ul > li,
+section > ul > li {
+    position: relative;
+    margin: 0;
+    padding: 0.9rem 1rem 0.9rem 1.15rem;
+    border: 1px solid rgba(212, 175, 55, 0.15);
+    background: rgba(9, 14, 10, 0.54);
+    transition:
+        border-color 140ms ease,
+        background 140ms ease,
+        transform 140ms ease;
+}
+
+.page-shell > ul > li::before,
+section > ul > li::before {
+    position: absolute;
+    top: 0;
+    bottom: 0;
+    left: -1px;
+    width: 2px;
+    content: "";
+    background: var(--necro-green);
+    opacity: 0.45;
+}
+
+.page-shell > ul > li:hover,
+section > ul > li:hover {
+    border-color: rgba(212, 175, 55, 0.34);
+    background: rgba(16, 124, 65, 0.06);
+    transform: translateX(2px);
+}
+
+.page-shell > ul > li > a:first-child,
+section > ul > li > a:first-child {
+    color: var(--text-strong);
+    font-family: Georgia, "Times New Roman", serif;
+    font-size: 1.08rem;
+}
+
+.page-shell > ul > li > a:first-child:hover,
+section > ul > li > a:first-child:hover {
+    color: var(--necro-green-bright);
+}
+
+/* Search / filter form on the exhibit catalogue. */
+.page-shell > form[method="get"] {
+    display: grid;
+    grid-template-columns: minmax(240px, 1.5fr) minmax(180px, 0.75fr) minmax(180px, 0.75fr) auto auto;
+    align-items: end;
+    gap: 0.8rem;
+    max-width: none;
+}
+
+.page-shell > form[method="get"] > p {
+    margin: 0;
+}
+
+.page-shell > form[method="get"] > a {
+    align-self: center;
+    color: var(--gold-muted);
+    font-size: 0.88rem;
+}
+
+.page-shell > form[method="get"] > a:hover {
+    color: var(--dull-gold);
+}
+
+/* A little more structure for the otherwise plain detail pages. */
+.page-shell > p:first-of-type {
+    color: var(--text-muted);
+}
+
+.page-shell > p a {
+    color: #b8d9bd;
+}
+
+.page-shell > p a:hover {
+    color: var(--necro-green-bright);
+}
+
+.page-shell > span {
+    display: inline-block;
+    margin: 0.18rem 0.35rem 0.18rem 0;
+    padding: 0.25rem 0.55rem;
+    border: 1px solid rgba(212, 175, 55, 0.2);
+    border-radius: 999px;
+    color: #c8c1a8;
+    background: rgba(16, 124, 65, 0.08);
+    font-size: 0.82rem;
+}
+
+@media (max-width: 1050px) {
+    .page-shell > form[method="get"] {
+        grid-template-columns: 1fr 1fr;
+    }
+}
+
+@media (max-width: 650px) {
+    .page-shell > form[method="get"] {
+        grid-template-columns: 1fr;
+    }
+
+    .page-shell > h1:first-of-type::after {
+        display: none;
+    }
+}

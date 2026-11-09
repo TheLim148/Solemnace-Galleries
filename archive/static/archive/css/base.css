@@ -1,0 +1,214 @@
+:root {
+    color-scheme: dark;
+
+    /* Palette inherited from the original prototype. */
+    --blackstone: #0b0c10;
+    --blackstone-deep: #050806;
+    --blackstone-soft: #0f1411;
+    --surface: #101813;
+    --surface-strong: #152019;
+
+    --necro-green: #107c41;
+    --necro-green-bright: #49d779;
+    --necro-green-soft: rgba(16, 124, 65, 0.18);
+
+    --dull-gold: #d4af37;
+    --gold-muted: #8d7631;
+    --gold-faint: rgba(212, 175, 55, 0.18);
+
+    --text: #d6d6d6;
+    --text-strong: #f0ead8;
+    --text-muted: #989d96;
+    --text-faint: #686e69;
+
+    --danger: #d78177;
+    --danger-surface: rgba(112, 39, 34, 0.24);
+
+    --border: rgba(212, 175, 55, 0.26);
+    --border-strong: rgba(212, 175, 55, 0.58);
+    --border-green: rgba(73, 215, 121, 0.42);
+
+    --shadow: 0 24px 70px rgba(0, 0, 0, 0.42);
+    --glow-green: 0 0 24px rgba(73, 215, 121, 0.14);
+
+    --radius-sm: 3px;
+    --radius-md: 5px;
+
+    --content-width: 1440px;
+    --text-width: 820px;
+}
+
+* {
+    box-sizing: border-box;
+}
+
+html {
+    min-height: 100%;
+    background: var(--blackstone-deep);
+}
+
+body {
+    min-height: 100vh;
+    margin: 0;
+    color: var(--text);
+    background:
+        radial-gradient(circle at 50% -12%, rgba(16, 124, 65, 0.18), transparent 34rem),
+        radial-gradient(circle at 85% 38%, rgba(16, 124, 65, 0.07), transparent 28rem),
+        linear-gradient(180deg, #080b09 0%, var(--blackstone) 36%, #070a08 100%);
+    font-family:
+        Inter,
+        ui-sans-serif,
+        system-ui,
+        -apple-system,
+        BlinkMacSystemFont,
+        "Segoe UI",
+        sans-serif;
+    font-size: 16px;
+    line-height: 1.65;
+    text-rendering: optimizeLegibility;
+}
+
+body::before {
+    position: fixed;
+    inset: 0;
+    z-index: -1;
+    content: "";
+    pointer-events: none;
+    opacity: 0.28;
+    background-image:
+        linear-gradient(rgba(212, 175, 55, 0.025) 1px, transparent 1px),
+        linear-gradient(90deg, rgba(212, 175, 55, 0.025) 1px, transparent 1px);
+    background-size: 56px 56px;
+    mask-image: linear-gradient(to bottom, rgba(0,0,0,.8), transparent 72%);
+}
+
+img {
+    display: block;
+    max-width: 100%;
+}
+
+a {
+    color: #b8d9bd;
+    text-decoration: none;
+    text-underline-offset: 0.18em;
+    transition: color 140ms ease;
+}
+
+a:hover {
+    color: var(--necro-green-bright);
+    text-decoration: none;
+}
+
+h1,
+h2,
+h3 {
+    margin-top: 0;
+    color: var(--text-strong);
+    font-family: Georgia, "Times New Roman", serif;
+    font-weight: 400;
+    line-height: 1.15;
+}
+
+h1 {
+    margin-bottom: 1.25rem;
+    font-size: clamp(2.35rem, 4.5vw, 4.5rem);
+    letter-spacing: 0.015em;
+}
+
+h2 {
+    margin-bottom: 0.9rem;
+    font-size: clamp(1.45rem, 2.5vw, 2.1rem);
+    letter-spacing: 0.02em;
+}
+
+h3 {
+    font-size: 1.18rem;
+}
+
+p {
+    margin: 0 0 1rem;
+}
+
+ul,
+ol {
+    padding-left: 1.3rem;
+}
+
+li + li {
+    margin-top: 0.4rem;
+}
+
+hr {
+    height: 1px;
+    margin: 2.25rem 0;
+    border: 0;
+    background: linear-gradient(90deg, transparent, var(--border-strong), transparent);
+}
+
+strong {
+    color: var(--text-strong);
+}
+
+::selection {
+    color: #041008;
+    background: var(--necro-green-bright);
+}
+
+.site-main {
+    min-height: calc(100vh - 154px);
+}
+
+.page-shell {
+    position: relative;
+    width: min(calc(100% - 3rem), var(--content-width));
+    margin: 0 auto;
+    padding: 4rem 0 5.5rem;
+}
+
+.page-shell::before {
+    display: block;
+    width: 100%;
+    height: 1px;
+    margin-bottom: 3rem;
+    content: "";
+    background: linear-gradient(
+        90deg,
+        transparent 0%,
+        rgba(212, 175, 55, 0.16) 12%,
+        var(--gold-muted) 50%,
+        rgba(212, 175, 55, 0.16) 88%,
+        transparent 100%
+    );
+}
+
+section {
+    margin-top: 3rem;
+}
+
+section > h2 {
+    display: flex;
+    align-items: center;
+    gap: 0.75rem;
+    padding-bottom: 0.55rem;
+    border-bottom: 1px solid var(--border);
+}
+
+section > h2::before {
+    width: 8px;
+    height: 8px;
+    border: 1px solid var(--dull-gold);
+    content: "";
+    transform: rotate(45deg);
+    box-shadow: 0 0 10px rgba(212, 175, 55, 0.16);
+}
+
+@media (max-width: 760px) {
+    .page-shell {
+        width: min(calc(100% - 1.25rem), var(--content-width));
+        padding-top: 2.25rem;
+    }
+
+    .page-shell::before {
+        margin-bottom: 2rem;
+    }
+}
