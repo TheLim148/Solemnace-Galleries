@@ -1,0 +1,32 @@
+{% extends "archive/base.html" %}
+
+{% block title %}
+Избранное — Solemnace Galleries
+{% endblock %}
+
+{% block content %}
+
+<h1>Избранное</h1>
+
+{% for favorite in favorites %}
+
+    <p>
+        <a href="{% url 'archive:exhibit_detail' favorite.exhibit.pk %}">
+            {{ favorite.exhibit.title }}
+        </a>
+
+        — {{ favorite.exhibit.category.name }}
+
+        — добавлен
+        {{ favorite.created_at|date:"d.m.Y H:i" }}
+    </p>
+
+{% empty %}
+
+    <p>
+        В избранном пока ничего нет.
+    </p>
+
+{% endfor %}
+
+{% endblock %}

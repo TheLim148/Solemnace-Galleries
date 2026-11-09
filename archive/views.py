@@ -21,12 +21,12 @@ from .models import (
     ExhibitRelation,
     ExhibitSource,
     ExhibitTag,
+    Favorite,
     Gallery,
     GalleryExhibit,
     Location,
     Media,
 )
-
 def home(request):
     return render(request, "archive/home.html")
 
@@ -112,12 +112,21 @@ def exhibit_detail(request, pk):
                 status=Exhibit.Status.PUBLISHED,
             )
 
+    is_favorite = False
+
+    if request.user.is_authenticated:
+        is_favorite = Favorite.objects.filter(
+            user=request.user,
+            exhibit=exhibit,
+        ).exists()
+
     return render(
         request,
         "archive/exhibit_detail.html",
         {
             "exhibit": exhibit,
             "related_exhibits": related_exhibits,
+            "is_favorite": is_favorite,
         },
     )
 
@@ -737,3 +746,74 @@ def location_delete(request, pk):
     )
 
 
+@login_required
+def favorite_toggle(request, pk):
+    if request.method != "POST":
+        raise PermissionDenied
+
+    exhibit = get_object_or_404(
+        Exhibit,
+        pk=pk,
+    )
+
+    is_admin = (
+        request.user.is_staff
+        or request.user.is_superuser
+        or request.user.role == "ADMIN"
+    )
+
+    is_owner = exhibit.owner_id == request.user.id
+
+    if (
+        exhibit.status != Exhibit.Status.PUBLISHED
+        and not is_owner
+        and not is_admin
+    ):
+        raise Http404
+
+    favorite = Favorite.objects.filter(
+        user=request.user,
+        exhibit=exhibit,
+    ).first()
+
+    if favorite:
+        favorite.delete()
+    else:
+        Favorite.objects.create(
+            user=request.user,
+            exhibit=exhibit,
+        )
+
+    return redirect(
+        "archive:exhibit_detail",
+        pk=exhibit.pk,
+    )
+
+@login_required
+def my_favorites(request):
+    favorites = (
+        Favorite.objects
+        .filter(user=request.user)
+        .select_related(
+            "exhibit",
+            "exhibit__category",
+            "exhibit__owner",
+        )
+        .order_by("-created_at")
+    )
+
+    if not (
+        request.user.is_staff
+        or request.user.is_superuser
+        or request.user.role == "ADMIN"
+    ):
+        favorites = favorites.filter(
+            Q(exhibit__status=Exhibit.Status.PUBLISHED)
+            | Q(exhibit__owner=request.user)
+        )
+
+    return render(
+        request,
+        "archive/my_favorites.html",
+        {"favorites": favorites},
+    )

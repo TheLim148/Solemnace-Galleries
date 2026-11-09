@@ -103,4 +103,14 @@ urlpatterns = [
         views.exhibit_detail,
         name="exhibit_detail",
     ),
+    path(
+        "exhibits/<int:pk>/favorite/",
+        views.favorite_toggle,
+        name="favorite_toggle",
+    ),
+    path(
+        "favorites/",
+        views.my_favorites,
+        name="my_favorites",
+    ),
 ]

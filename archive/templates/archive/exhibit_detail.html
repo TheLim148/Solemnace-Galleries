@@ -10,6 +10,27 @@
 
 {% if user.is_authenticated %}
 
+    <form
+        method="post"
+        action="{% url 'archive:favorite_toggle' exhibit.pk %}"
+        style="display: inline;"
+    >
+        {% csrf_token %}
+
+        <button type="submit">
+            {% if is_favorite %}
+                Убрать из избранного
+            {% else %}
+                Добавить в избранное
+            {% endif %}
+        </button>
+    </form>
+
+{% endif %}
+
+
+{% if user.is_authenticated %}
+
     {% if user == exhibit.owner or user.is_staff or user.role == "ADMIN" %}
 
         <p>
