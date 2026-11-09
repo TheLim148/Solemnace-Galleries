@@ -17,6 +17,7 @@ from .forms import (
 )
 
 from .models import (
+    Category,
     Exhibit,
     ExhibitRelation,
     ExhibitSource,
@@ -26,7 +27,9 @@ from .models import (
     GalleryExhibit,
     Location,
     Media,
+    Tag,
 )
+
 def home(request):
     return render(request, "archive/home.html")
 
@@ -36,13 +39,46 @@ def exhibit_list(request):
         Exhibit.objects
         .filter(status=Exhibit.Status.PUBLISHED)
         .select_related("category", "owner")
+        .prefetch_related("tags")
         .order_by("-created_at")
     )
+
+    query = request.GET.get("q", "").strip()
+    category_id = request.GET.get("category", "")
+    tag_id = request.GET.get("tag", "")
+
+    if query:
+        exhibits = exhibits.filter(
+            Q(title__icontains=query)
+            | Q(description__icontains=query)
+            | Q(tags__name__icontains=query)
+            | Q(sources__title__icontains=query)
+        ).distinct()
+
+    if category_id:
+        exhibits = exhibits.filter(
+            category_id=category_id,
+        )
+
+    if tag_id:
+        exhibits = exhibits.filter(
+            tags__id=tag_id,
+        ).distinct()
+
+    categories = Category.objects.order_by("name")
+    tags = Tag.objects.order_by("name")
 
     return render(
         request,
         "archive/exhibit_list.html",
-        {"exhibits": exhibits},
+        {
+            "exhibits": exhibits,
+            "categories": categories,
+            "tags": tags,
+            "query": query,
+            "selected_category": category_id,
+            "selected_tag": tag_id,
+        },
     )
 
 

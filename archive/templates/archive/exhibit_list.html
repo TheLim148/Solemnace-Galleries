@@ -8,20 +8,121 @@
 
 <h1>Экспонаты</h1>
 
+
+<form method="get">
+
+    <p>
+        <label for="q">
+            Поиск:
+        </label>
+
+        <input
+            id="q"
+            type="search"
+            name="q"
+            value="{{ query }}"
+            placeholder="Название, описание, тег..."
+        >
+    </p>
+
+
+    <p>
+        <label for="category">
+            Категория:
+        </label>
+
+        <select
+            id="category"
+            name="category"
+        >
+            <option value="">
+                Все категории
+            </option>
+
+            {% for category in categories %}
+                <option
+                    value="{{ category.pk }}"
+                    {% if selected_category == category.pk|stringformat:"s" %}
+                        selected
+                    {% endif %}
+                >
+                    {{ category.name }}
+                </option>
+            {% endfor %}
+        </select>
+    </p>
+
+
+    <p>
+        <label for="tag">
+            Тег:
+        </label>
+
+        <select
+            id="tag"
+            name="tag"
+        >
+            <option value="">
+                Все теги
+            </option>
+
+            {% for tag in tags %}
+                <option
+                    value="{{ tag.pk }}"
+                    {% if selected_tag == tag.pk|stringformat:"s" %}
+                        selected
+                    {% endif %}
+                >
+                    {{ tag.name }}
+                </option>
+            {% endfor %}
+        </select>
+    </p>
+
+
+    <button type="submit">
+        Найти
+    </button>
+
+    <a href="{% url 'archive:exhibit_list' %}">
+        Сбросить
+    </a>
+
+</form>
+
+
+<hr>
+
+
 {% if exhibits %}
+
     <ul>
         {% for exhibit in exhibits %}
             <li>
+
                 <a href="{% url 'archive:exhibit_detail' exhibit.pk %}">
                     {{ exhibit.title }}
                 </a>
 
                 — {{ exhibit.category.name }}
+
+                {% if exhibit.tags.all %}
+                    —
+                    {% for tag in exhibit.tags.all %}
+                        #{{ tag.name }}
+                    {% endfor %}
+                {% endif %}
+
             </li>
         {% endfor %}
     </ul>
+
 {% else %}
-    <p>Опубликованных экспонатов пока нет.</p>
+
+    <p>
+        Экспонаты по заданным условиям не найдены.
+    </p>
+
 {% endif %}
 
 {% endblock %}
