@@ -1,7 +1,7 @@
 [project]
 name = "solemnace-galleries"
 version = "0.1.0"
-description = "Add your description here"
+description = "Digital catalog and management system for galleries and exhibits."
 readme = "README.md"
 authors = [
     { name = "TheLim148", email = "ruzhov34@gmail.com" }
@@ -12,9 +12,6 @@ dependencies = [
     "psycopg[binary]>=3.3.8",
     "python-dotenv>=1.2.4",
 ]
-
-[project.scripts]
-solemnace-galleries = "solemnace_galleries:main"
 
 [build-system]
 requires = ["uv_build>=0.13.6,<0.14.0"]

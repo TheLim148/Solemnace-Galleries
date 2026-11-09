@@ -34,6 +34,3 @@ if settings.DEBUG:
         document_root=settings.MEDIA_ROOT,
     )
 
-LOGIN_URL = "accounts:login"
-LOGIN_REDIRECT_URL = "archive:home"
-LOGOUT_REDIRECT_URL = "archive:home"

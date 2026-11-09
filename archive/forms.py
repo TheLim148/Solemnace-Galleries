@@ -1,16 +1,8 @@
 from django import forms
-
 from django.db.models import Q
 
-from .models import (
-    Category,
-    Exhibit,
-    Gallery,
-    Location,
-    Media,
-    Source,
-    Tag,
-)
+from .models import Exhibit, Gallery, Location, Media, Source, Tag
+from .permissions import is_archive_admin
 
 
 class ExhibitForm(forms.ModelForm):
@@ -20,16 +12,14 @@ class ExhibitForm(forms.ModelForm):
         widget=forms.CheckboxSelectMultiple,
         label="Теги",
     )
-
     sources = forms.ModelMultipleChoiceField(
         queryset=Source.objects.order_by("title"),
         required=False,
         widget=forms.CheckboxSelectMultiple,
         label="Источники",
     )
-
     galleries = forms.ModelMultipleChoiceField(
-        queryset=Gallery.objects.order_by("name"),
+        queryset=Gallery.objects.none(),
         required=False,
         widget=forms.CheckboxSelectMultiple,
         label="Галереи",
@@ -42,18 +32,29 @@ class ExhibitForm(forms.ModelForm):
             "description",
             "category",
         )
-
         labels = {
             "title": "Название",
             "description": "Описание",
             "category": "Категория",
         }
 
+    def __init__(self, *args, user=None, **kwargs):
+        super().__init__(*args, **kwargs)
+
+        if user is None:
+            return
+
+        if is_archive_admin(user):
+            galleries = Gallery.objects.all()
+        else:
+            galleries = Gallery.objects.filter(owner=user)
+
+        self.fields["galleries"].queryset = galleries.order_by("name")
+
 
 class MediaForm(forms.ModelForm):
     class Meta:
         model = Media
-
         fields = (
             "file",
             "media_type",
@@ -61,7 +62,6 @@ class MediaForm(forms.ModelForm):
             "alt_text",
             "position",
         )
-
         labels = {
             "file": "Файл",
             "media_type": "Тип",
@@ -69,6 +69,7 @@ class MediaForm(forms.ModelForm):
             "alt_text": "Альтернативный текст",
             "position": "Позиция",
         }
+
 
 class GalleryForm(forms.ModelForm):
     class Meta:
@@ -78,7 +79,6 @@ class GalleryForm(forms.ModelForm):
             "description",
             "location",
         )
-
         labels = {
             "name": "Название",
             "description": "Описание",
@@ -92,29 +92,24 @@ class GalleryForm(forms.ModelForm):
             self.fields["location"].queryset = Location.objects.none()
             return
 
-        if user.is_staff or user.is_superuser or user.role == "ADMIN":
-            self.fields["location"].queryset = Location.objects.order_by("name")
+        if is_archive_admin(user):
+            locations = Location.objects.all()
         else:
-            self.fields["location"].queryset = (
-                Location.objects
-                .filter(
-                    Q(owner=user)
-                    | Q(is_system=True)
-                )
-                .order_by("name")
+            locations = Location.objects.filter(
+                Q(owner=user) | Q(is_system=True)
             )
+
+        self.fields["location"].queryset = locations.order_by("name")
 
 
 class LocationForm(forms.ModelForm):
     class Meta:
         model = Location
-
         fields = (
             "name",
             "description",
             "parent",
         )
-
         labels = {
             "name": "Название",
             "description": "Описание",
@@ -128,30 +123,25 @@ class LocationForm(forms.ModelForm):
             self.fields["parent"].queryset = Location.objects.none()
             return
 
-        if user.is_staff or user.is_superuser or user.role == "ADMIN":
-            queryset = Location.objects.all()
+        if is_archive_admin(user):
+            locations = Location.objects.all()
         else:
-            queryset = Location.objects.filter(
-                Q(owner=user)
-                | Q(is_system=True)
+            locations = Location.objects.filter(
+                Q(owner=user) | Q(is_system=True)
             )
 
         if self.instance and self.instance.pk:
-            queryset = queryset.exclude(pk=self.instance.pk)
+            locations = locations.exclude(pk=self.instance.pk)
 
-        self.fields["parent"].queryset = queryset.order_by("name")
+        self.fields["parent"].queryset = locations.order_by("name")
         self.fields["parent"].required = True
 
         if not self.instance.pk:
             root = (
                 Location.objects
-                .filter(
-                    is_system=True,
-                    parent__isnull=True,
-                )
+                .filter(is_system=True, parent__isnull=True)
                 .first()
             )
-
             if root:
                 self.fields["parent"].initial = root
 
@@ -167,14 +157,12 @@ class LocationForm(forms.ModelForm):
             return parent
 
         current = parent
-
         while current is not None:
             if current.pk == self.instance.pk:
                 raise forms.ValidationError(
                     "Нельзя переместить локацию внутрь самой себя "
                     "или одной из её дочерних локаций."
                 )
-
             current = current.parent
 
         return parent
